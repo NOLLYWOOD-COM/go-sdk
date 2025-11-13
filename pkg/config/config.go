@@ -1,4 +1,4 @@
-package nollywood
+package config
 
 import (
 	"fmt"
@@ -57,4 +57,15 @@ func DefaultConfig(iamBaseUrl, catalogueBaseUrl string) *Config {
 		RetryDelay:       2 * time.Second,
 		UserAgent:        fmt.Sprintf("nollywood-go-sdk/%s", SDK_VERSION),
 	}
+}
+
+// NewConfig creates a new Config with the given options
+func NewConfig(options ...Option) *Config {
+	config := &Config{}
+
+	for _, option := range options {
+		option(config)
+	}
+
+	return config
 }

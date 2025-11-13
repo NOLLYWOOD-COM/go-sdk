@@ -1,4 +1,4 @@
-package nollywood
+package httpclient
 
 import (
 	"net/url"
@@ -33,10 +33,10 @@ func TestStructToQueryParams(t *testing.T) {
 		{
 			name: "multiple fields with different types",
 			input: struct {
-				Name    string
-				Age     int
-				Active  bool
-				Score   float64
+				Name   string
+				Age    int
+				Active bool
+				Score  float64
 			}{
 				Name:   "Jane",
 				Age:    25,
@@ -373,9 +373,6 @@ func TestIsZeroValue(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// This is more of an integration test since isZeroValue is not exported
 			// We test it through StructToQueryParams
-			type TestStruct struct {
-				Value interface{}
-			}
 			// The actual testing is done through StructToQueryParams above
 			t.Logf("Testing zero value: %v (expected zero: %v)", tt.value, tt.expected)
 		})

@@ -1,3 +1,3 @@
-package nollywood
+package config
 
 const SDK_VERSION = "1.0.0"

@@ -1,4 +1,4 @@
-package nollywood
+package httpclient
 
 import (
 	"fmt"

@@ -1,8 +1,9 @@
-package nollywood
+package httpclient
 
 import "context"
 
-type HttpClient interface {
+// Client is the internal HTTP client interface for making requests
+type Client interface {
 	GetIAMBaseURL() string
 	GetCatalogueBaseURL() string
 	Delete(ctx context.Context, url string, params map[string]string, result interface{}) error

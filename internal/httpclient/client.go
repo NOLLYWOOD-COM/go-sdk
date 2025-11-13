@@ -1,4 +1,4 @@
-package nollywood
+package httpclient
 
 import (
 	"bytes"
@@ -11,45 +11,46 @@ import (
 	"time"
 )
 
-func NewHttpClient(config *Config) HttpClient {
-	return &NollywoodHttpClient{
-		client: &http.Client{
+// New creates a new HTTP client with the given configuration
+func New(config *Config) Client {
+	return &client{
+		httpClient: &http.Client{
 			Timeout: config.Timeout,
 		},
 		config: config,
-		auth:   &Auth{},
+		auth:   &AuthState{},
 	}
 }
 
-func (c *NollywoodHttpClient) GetIAMBaseURL() string {
+func (c *client) GetIAMBaseURL() string {
 	return c.config.IAMBaseURL
 }
 
-func (c *NollywoodHttpClient) GetCatalogueBaseURL() string {
+func (c *client) GetCatalogueBaseURL() string {
 	return c.config.CatalogueBaseURL
 }
 
-func (c *NollywoodHttpClient) Get(ctx context.Context, urlStr string, params map[string]string, result interface{}) error {
+func (c *client) Get(ctx context.Context, urlStr string, params map[string]string, result interface{}) error {
 	return c.makeRequest(ctx, http.MethodGet, urlStr, params, result, true)
 }
 
-func (c *NollywoodHttpClient) Post(ctx context.Context, urlStr string, body interface{}, result interface{}) error {
+func (c *client) Post(ctx context.Context, urlStr string, body interface{}, result interface{}) error {
 	return c.makeRequest(ctx, http.MethodPost, urlStr, body, result, true)
 }
 
-func (c *NollywoodHttpClient) Put(ctx context.Context, urlStr string, body interface{}, result interface{}) error {
+func (c *client) Put(ctx context.Context, urlStr string, body interface{}, result interface{}) error {
 	return c.makeRequest(ctx, http.MethodPut, urlStr, body, result, true)
 }
 
-func (c *NollywoodHttpClient) Patch(ctx context.Context, urlStr string, body interface{}, result interface{}) error {
+func (c *client) Patch(ctx context.Context, urlStr string, body interface{}, result interface{}) error {
 	return c.makeRequest(ctx, http.MethodPatch, urlStr, body, result, true)
 }
 
-func (c *NollywoodHttpClient) Delete(ctx context.Context, urlStr string, params map[string]string, result interface{}) error {
+func (c *client) Delete(ctx context.Context, urlStr string, params map[string]string, result interface{}) error {
 	return c.makeRequest(ctx, http.MethodDelete, urlStr, params, result, true)
 }
 
-func (c *NollywoodHttpClient) makeRequest(ctx context.Context, method, urlStr string, data interface{}, result interface{}, authenticate bool) error {
+func (c *client) makeRequest(ctx context.Context, method, urlStr string, data interface{}, result interface{}, authenticate bool) error {
 	var bodyBytes []byte
 	var err error
 
@@ -105,7 +106,7 @@ func (c *NollywoodHttpClient) makeRequest(ctx context.Context, method, urlStr st
 	return c.executeWithRetry(ctx, method, urlStr, bodyBytes, result, authenticate)
 }
 
-func (c *NollywoodHttpClient) executeWithRetry(ctx context.Context, method, urlStr string, bodyBytes []byte, result interface{}, authenticate bool) error {
+func (c *client) executeWithRetry(ctx context.Context, method, urlStr string, bodyBytes []byte, result interface{}, authenticate bool) error {
 	var lastErr error
 
 	for attempt := 0; attempt <= c.config.MaxRetries; attempt++ {
@@ -141,7 +142,7 @@ func (c *NollywoodHttpClient) executeWithRetry(ctx context.Context, method, urlS
 		}
 
 		// Execute request
-		resp, err := c.client.Do(req)
+		resp, err := c.httpClient.Do(req)
 		if err != nil {
 			lastErr = fmt.Errorf("request failed: %w", err)
 			continue
@@ -175,7 +176,7 @@ func (c *NollywoodHttpClient) executeWithRetry(ctx context.Context, method, urlS
 	return fmt.Errorf("max retries exceeded: %w", lastErr)
 }
 
-func (c *NollywoodHttpClient) handleResponse(resp *http.Response, result interface{}) error {
+func (c *client) handleResponse(resp *http.Response, result interface{}) error {
 	// Read response body
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -200,7 +201,7 @@ func (c *NollywoodHttpClient) handleResponse(resp *http.Response, result interfa
 	return fmt.Errorf("HTTP %d: %s", resp.StatusCode, resp.Status)
 }
 
-func (c *NollywoodHttpClient) authenticate(ctx context.Context) error {
+func (c *client) authenticate(ctx context.Context) error {
 	if c.config.ApiKey == "" {
 		return fmt.Errorf("no API key provided for authentication")
 	}
@@ -227,7 +228,7 @@ func (c *NollywoodHttpClient) authenticate(ctx context.Context) error {
 	return c.getToken(ctx)
 }
 
-func (c *NollywoodHttpClient) getToken(ctx context.Context) error {
+func (c *client) getToken(ctx context.Context) error {
 	urlStr := fmt.Sprintf("%s/auth/login/key", c.config.IAMBaseURL)
 	payload := map[string]string{
 		"key": c.config.ApiKey,
@@ -265,7 +266,7 @@ func (c *NollywoodHttpClient) getToken(ctx context.Context) error {
 	return nil
 }
 
-func (c *NollywoodHttpClient) refreshToken(ctx context.Context) error {
+func (c *client) refreshToken(ctx context.Context) error {
 	urlStr := fmt.Sprintf("%s/auth/token/refresh", c.config.IAMBaseURL)
 
 	c.authMutex.RLock()
