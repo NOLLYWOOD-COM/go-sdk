@@ -10,11 +10,17 @@ import (
 type Client interface {
 	// Works returns the work service for catalogue operations
 	Works() catalogue.WorkService
+	// People returns the people service for catalogue operations
+	People() catalogue.PeopleService
+	// Articles returns the article service for catalogue operations
+	Articles() catalogue.ArticleService
 }
 
 // client is the concrete implementation of Client
 type NollywoodSDKClient struct {
 	works      catalogue.WorkService
+	people     catalogue.PeopleService
+	articles   catalogue.ArticleService
 	httpClient httpclient.Client
 }
 
@@ -36,9 +42,19 @@ func NewClient(config *config.Config) Client {
 	return &NollywoodSDKClient{
 		httpClient: httpClient,
 		works:      catalogue.NewWorkService(httpClient),
+		people:     catalogue.NewPeopleService(httpClient),
+		articles:   catalogue.NewArticleService(httpClient),
 	}
 }
 
 func (c *NollywoodSDKClient) Works() catalogue.WorkService {
 	return c.works
+}
+
+func (c *NollywoodSDKClient) People() catalogue.PeopleService {
+	return c.people
+}
+
+func (c *NollywoodSDKClient) Articles() catalogue.ArticleService {
+	return c.articles
 }
