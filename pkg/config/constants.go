@@ -1,3 +1,3 @@
 package config
 
-const SDK_VERSION = "0.1.0"
+const SDK_VERSION = "0.1.1"

@@ -28,8 +28,8 @@ type Person struct {
 	Deceased       bool       `json:"deceased"`
 	BirthName      *string    `json:"birthName"`
 	BirthPlace     *string    `json:"birthPlace"`
-	BirthDate      *time.Time `json:"birthDate"`
-	DeathDate      *time.Time `json:"deathDate"`
+	BirthDate      *FlexibleDate `json:"birthDate"`
+	DeathDate      *FlexibleDate `json:"deathDate"`
 	Aliases        []string   `json:"aliases"`
 	Nationality    []string   `json:"nationality"`
 	Bio            *string    `json:"bio"`
@@ -67,12 +67,12 @@ type Work struct {
 	ContentRating   *string    `json:"contentRating"`
 	ReleaseDate     *string    `json:"releaseDate"`
 	ReleaseYear     *int       `json:"releaseYear"`
-	AirDate         *time.Time `json:"airDate"`
-	StartDate       *time.Time `json:"startDate"`
-	EndDate         *time.Time `json:"endDate"`
-	Runtime         *int       `json:"runtime"`
-	UserRating      *float64   `json:"userRating"`
-	CriticRating    *float64   `json:"criticRating"`
+	AirDate         *FlexibleDate  `json:"airDate"`
+	StartDate       *FlexibleDate  `json:"startDate"`
+	EndDate         *FlexibleDate  `json:"endDate"`
+	Runtime         *int           `json:"runtime"`
+	UserRating      *FlexibleFloat `json:"userRating"`
+	CriticRating    *FlexibleFloat `json:"criticRating"`
 	IsStreamable    bool       `json:"isStreamable"`
 	IsInTheatre     bool       `json:"isInTheatre"`
 	Budget          *float64   `json:"budget"`
