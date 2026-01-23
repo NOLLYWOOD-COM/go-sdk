@@ -1,0 +1,54 @@
+# @genqlient
+query SearchWorks($input: SearchInput!) {
+  search(input: $input) {
+    collections {
+      found
+      hits {
+        ... on WorkSearchHit {
+          id
+          title
+          slug
+          work {
+            workType
+            releaseYear
+            releaseDate
+            poster {
+              url
+              thumbnailImageUrl
+            }
+            genres {
+              name
+            }
+            runtime
+            summary
+            synopsis
+          }
+        }
+      }
+    }
+  }
+}
+
+# @genqlient
+query SearchPeople($input: SearchInput!) {
+  search(input: $input) {
+    collections {
+      found
+      hits {
+        ... on PersonSearchHit {
+          id
+          name
+          slug
+          person {
+            headshot {
+              url
+              thumbnailImageUrl
+            }
+            bio
+            gender
+          }
+        }
+      }
+    }
+  }
+}

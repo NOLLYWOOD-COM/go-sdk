@@ -1,0 +1,3578 @@
+"""Grouping dimension for event aggregates query"""
+enum EventAggregatesGroupBy {
+  "Group by date only"
+  DATE
+  "Group by date and event details"
+  DATE_EVENT
+  "Group by date, device type, and country"
+  DATE_DEVICE_COUNTRY
+  "Group by work"
+  WORK
+  "Group by person"
+  PERSON
+  "Group by creator"
+  CREATOR
+}
+
+"""Input for querying event aggregates"""
+input GetEventAggregatesInput {
+  "Start date for the query period (YYYY-MM-DD)"
+  startDate: String
+  "End date for the query period (YYYY-MM-DD)"
+  endDate: String
+  "Grouping dimension for aggregation"
+  groupBy: EventAggregatesGroupBy
+  "Maximum number of results to return"
+  limit: Int
+  "Filter by single event name"
+  eventName: String
+  "Filter by single event category"
+  eventCategory: String
+  "Filter by single device type"
+  deviceType: String
+  "Filter by single country"
+  country: String
+  "Filter by single work ID"
+  workId: String
+  "Filter by single person ID"
+  personId: String
+  "Filter by single creator ID"
+  creatorId: String
+  "List of event names to filter by"
+  eventNames: [String!]
+  "List of event categories to filter by"
+  eventCategories: [String!]
+  "List of device types to filter by"
+  deviceTypes: [String!]
+  "List of countries to filter by"
+  countries: [String!]
+  "List of work IDs to filter by"
+  workIds: [String!]
+  "List of person IDs to filter by"
+  personIds: [String!]
+  "List of creator IDs to filter by"
+  creatorIds: [String!]
+  "JSON object with property key-value pairs to match (AND logic)"
+  propFilters: String
+  "Property key for OR filter"
+  propOrKey: String
+  "Comma-separated property values for OR filter (matches any)"
+  propOrValues: String
+}
+
+"""
+Event aggregate result with all possible fields.
+Fields are populated based on the groupBy parameter.
+"""
+type EventAggregateResult {
+  "Date of the aggregate (present for date, date_event, date_device_country groupings)"
+  date: String
+  "Event name (present for date_event grouping)"
+  eventName: String
+  "Event category (present for date_event grouping)"
+  eventCategory: String
+  "Device type (present for date_device_country grouping)"
+  deviceType: String
+  "Country (present for date_device_country grouping)"
+  country: String
+  "Work ID (present for work grouping)"
+  workId: String
+  "Person ID (present for person grouping)"
+  personId: String
+  "Creator ID (present for creator grouping)"
+  creatorId: String
+  "Total event count"
+  eventCount: Int!
+  "Unique users count"
+  uniqueUsers: Int!
+  "Unique sessions count"
+  uniqueSessions: Int!
+}
+
+type Query {
+  """
+  Get aggregated event metrics with flexible grouping and filtering.
+  Requires authentication and analytics:read permission.
+  """
+  eventAggregates(input: GetEventAggregatesInput!): [EventAggregateResult!]!
+  """Retrieve a paginated list of API keys with optional filtering."""
+  listApiKeys(input: ListApiKeysInput!): ApiKeyConnection!
+  """
+  Retrieves a single article by its unique identifier (ID or slug). This query is intended for public access and does not require authentication.
+  """
+  getArticle(identifier: String!): Article!
+  """
+  Retrieves a paginated list of articles. This query requires authentication and is intended for use by administrators or content managers.
+  """
+  getArticles(input: GetArticlesInput!): ArticlesConnection!
+  """
+  Retrieves a paginated list of published articles. This query is intended for public access and does not require authentication.
+  """
+  getPublishedArticles(input: GetPublishedArticlesInput!): ArticlesConnection!
+  getOAuthProviders: [OAuthProvider!]!
+  """
+  List all active sessions for the current user.
+  Requires authentication.
+  """
+  mySessions: [Session!]!
+  """Retrieve a paginated list of critic sources."""
+  listCriticSources(input: ListCriticSourcesInput = {}): CriticSourceConnection!
+  """Retrieve a specific critic source by its ID."""
+  getCriticSource(id: ID!): CriticSource
+  """Get a single data request by ID"""
+  getDataRequest(id: ID!): DataRequest
+  """Get a paginated list of data requests"""
+  getDataRequests(input: GetDataRequestsInput): DataRequestConnection!
+  """Retrieves a single editorial list by its ID."""
+  getEditorialList(id: ID!): EditorialList!
+  """
+  Retrieves a paginated list of editorial lists with optional filters.
+  This should be used internally for management purposes only.
+  """
+  getEditorialLists(input: GetEditorialListsInput!): EditorialListsConnection!
+  """Retrieves all public editorial lists for display on the public site."""
+  getPublicEditorialLists: [EditorialList!]!
+  getEmailProvider(identifier: String!): EmailProvider!
+  listEmailProviders(input: ListEmailProvidersInput): EmailProvidersConnection!
+  getEmailTemplate(templateId: ID!): EmailTemplate!
+  listEmailTemplates(input: ListEmailTemplatesInput): EmailTemplatesConnection!
+  getEmailTemplateVersions(templateId: ID!, input: ListEmailTemplateVersionsInput): EmailTemplateVersionsConnection!
+  getEmailTemplatePartial(partialId: ID!): EmailTemplatePartial!
+  listEmailTemplatePartials(input: ListEmailTemplatePartialsInput): EmailTemplatePartialsConnection!
+  """Retrieve a specific external critic review by its ID."""
+  getExternalCriticReview(id: ID!): ExternalCriticReview
+  """
+  List all external critic reviews with optional filters.
+  Use workId to filter by a specific work, or omit to get reviews across all works.
+  """
+  listExternalCriticReviews(input: ListAllExternalCriticReviewsInput = {}): ExternalCriticReviewConnection!
+  getExternalReviewFetchJob(id: ID!): ExternalReviewFetchJob
+  listExternalReviewFetchJobs(input: ListExternalReviewFetchJobsInput): ExternalReviewFetchJobConnection!
+  getLatestExternalReviewFetchJobForWork(workId: ID!): ExternalReviewFetchJob
+  """Get a single group by its identifier"""
+  getGroup(identifier: String!): IAMGroup!
+  """List groups with optional filters and pagination"""
+  listGroups(input: ListGroupsInput!): IAMGroupConnection!
+  """Get all groups a user belongs to"""
+  getUserGroups(userId: ID!): [IAMGroup!]!
+  getMedia(id: ID!): MediaItem
+  listMedia(input: ListMediaItemsInput!): MediaItemConnection!
+  """
+  List moderation escalations with optional filters. Requires authentication.
+  """
+  listModerationEscalations(input: ListModerationEscalationsInput!): ModerationEscalationConnection!
+  """Get a specific moderation escalation by ID. Requires authentication."""
+  getModerationEscalation(id: ID!): ModerationEscalation!
+  """Get a list of people based on the provided input."""
+  getPeople(input: GetPeopleInput!): PeopleConnection!
+  """Get a list of people born today."""
+  getPeopleBornToday(input: GetPeopleBornTodayInput!): PeopleConnection!
+  """Get a person by their unique identifier (ID or slug)."""
+  getPerson(identifier: String!): Person
+  """Get a list of trending people based on analytics data."""
+  getTrendingPeople(limit: Int = 10): [Person!]!
+  """Retrieve a list of permissions with optional filtering."""
+  listPermissions(input: ListPermissionsInput): [Permission!]!
+  """
+  Retrieve a list of platforms with optional filtering, sorting, and pagination.
+  """
+  listPlatforms(input: ListPlatformsInput = {}): PlatformConnection!
+  """Retrieve a single platform by its unique identifier."""
+  getPlatform(identifier: String!): Platform
+  """Get a paginated list of reviews with optional filters."""
+  getReviews(input: GetReviewsInput!): ReviewConnection!
+  """Get a specific review by its ID."""
+  getReview(id: ID!): Review!
+  """Get all roles with optional filtering"""
+  getRoles(query: ListRolesQuery!): [IAMRole!]!
+  """Get a specific role by ID"""
+  getRoleById(id: ID!): IAMRole!
+  """Get permissions for a specific role"""
+  getPermissionsForRole(roleId: ID!): [Permission!]!
+  """Get permissions for multiple roles"""
+  getPermissionsForRoles(roleIdentifiers: [String!]!): [Permission!]!
+  search(input: SearchInput): SearchResult
+  """Retrieve a service account by its ID."""
+  getServiceAccount(id: ID!): ServiceAccount
+  """Retrieve a paginated list of service accounts with optional filtering."""
+  listServiceAccounts(input: ListServiceAccountsInput!): ServiceAccountConnection!
+  getTenant(identifier: String!): IAMTenant!
+  listTenants(input: ListTenantsInput!): IAMTenantConnection!
+  """Get a paginated list of trivia items with optional filters."""
+  listTrivia(input: GetTriviaInput!): TriviaConnection!
+  """Get a specific trivia item by its ID."""
+  getTrivia(id: ID!): Trivia!
+  """Get the count of trivia for a specific work."""
+  getWorkTriviaCount(workId: ID!): Int!
+  """Check if a username is available for registration."""
+  checkUsernameAvailability(username: String!): Boolean!
+  """Retrieve the currently authenticated user's profile information."""
+  me: User!
+  """
+  Retrieve metrics related to the authenticated user, such as the number of reviews and ratings they have submitted.
+  """
+  myMetrics: UserMetrics! @deprecated(reason: "Use individual fields in the User type instead.")
+  myReviews(input: MyReviewsInput!): ReviewConnection!
+  myRatings(input: MyRatingsInput!): RatingConnection!
+  myWatchList(input: MyWatchListInput!): UserListItemConnection!
+  myWatchedList(input: MyWatchListInput!): UserListItemConnection!
+  getUser(identifier: String!): User
+  getUserReviews(identifier: String!, params: GetUserReviewsInput!): ReviewConnection!
+  """Retrieve a paginated list of IAM users."""
+  getIAMUsers(input: GetIAMUsersInput!): IAMUserConnection!
+  genres(input: GetGenresInput): GenresConnection!
+  genre(identifier: String!): Genre
+  themes(input: GetThemesInput): ThemesConnection!
+  theme(identifier: String!): Theme
+  """Get a list of featured works for homepage or special sections."""
+  getFeaturedWorks(input: GetFeaturedWorksInput!): [Work!]
+  """
+  Get trending works based on engagement metrics over a time period.
+  Returns works sorted by trending score with rank improvement data.
+  """
+  getTrendingWorks(input: GetTrendingWorksInput!): [Work!]!
+  getMovies(input: GetMoviesInput): WorksConnection!
+  getShows(input: GetShowsInput): WorksConnection!
+  getWork(identifier: String!): Work!
+  """
+  Get a list of all works (movies, TV shows, documentaries, etc.) in the catalogue.
+  """
+  getWorks(input: GetWorksInput!): WorksConnection!
+  """
+  Get published reviews for a specific work identified by its ID or slug.
+  """
+  getWorkReviews(input: GetWorkReviewsInput!): ReviewConnection! @deprecated(reason: "Use reviews and criticReviews fields on the Work type instead.")
+}
+
+type ApiKey {
+  id: ID!
+  name: String!
+  description: String
+  serviceAccountId: String
+  userId: String
+  lastUsedAt: String
+  value: String
+  expiresAt: String
+  createdAt: String!
+  updatedAt: String!
+}
+
+type ApiKeyConnection {
+  items: [ApiKey!]!
+  pageInfo: PageInfo!
+}
+
+input CreateApiKeyInput {
+  name: String!
+  description: String
+  serviceAccountId: String
+  userId: String
+  ttl: Int
+}
+
+input UpdateApiKeyInput {
+  name: String
+  description: String
+  expiresAt: String
+}
+
+input ListApiKeysInput {
+  pagination: PaginationInput! = {page: 1, pageSize: 20}
+  sort: SortInput! = {sortBy: "createdAt", sortOrder: desc}
+  expired: Boolean
+  serviceAccountId: String
+  userId: String
+  search: String
+}
+
+type Mutation {
+  """Create a new API key."""
+  createApiKey(input: CreateApiKeyInput!): ApiKey!
+  """Update an API key by its ID."""
+  updateApiKey(id: ID!, input: UpdateApiKeyInput!): ApiKey!
+  """Delete an API key by its ID."""
+  deleteApiKey(id: ID!): Boolean!
+  """Revoke an API key by its ID, setting its expiration to now."""
+  revokeApiKey(id: ID!): Boolean!
+  createArticle(input: CreateArticleInput!): Article!
+  updateArticle(identifier: ID!, input: UpdateArticleInput!): Article!
+  archiveArticle(identifier: ID!): Boolean!
+  deleteArticle(identifier: ID!): Boolean!
+  """
+  Permanently delete multiple articles by their identifiers (IDs or slugs)
+  """
+  deleteArticles(identifiers: [String!]!): Boolean!
+  publishArticle(identifier: ID!, input: PublishArticleInput): Boolean!
+  unpublishArticle(identifier: ID!): Boolean!
+  loginWithPassword(identifier: String!, password: String!): TokenPair!
+  """
+  Authenticate a user using a user token (for example, email verification token).
+  """
+  loginWithToken(identifier: String!, userToken: String!): TokenPair!
+  loginWithOAuthProvider(provider: String!, redirectUri: String!): String!
+  completeOAuthProviderLogin(provider: String!, requestId: String!, exchangeToken: String!): TokenPair!
+  refreshToken(refreshToken: String!): TokenPair!
+  """
+  Logout from the current session.
+  Requires authentication.
+  """
+  logout(refreshToken: String!): Boolean!
+  """
+  Logout from all devices.
+  Requires authentication.
+  """
+  logoutAllDevices: Boolean!
+  """
+  Revoke a specific session by device ID.
+  Requires authentication.
+  """
+  revokeSession(deviceId: ID!): Boolean!
+  """Create a new critic source."""
+  createCriticSource(input: CreateCriticSourceInput!): CriticSource!
+  """Update an existing critic source."""
+  updateCriticSource(id: ID!, input: UpdateCriticSourceInput!): CriticSource!
+  """Delete a critic source by its ID."""
+  deleteCriticSource(id: ID!): Boolean!
+  """Create a new data request"""
+  createDataRequest(input: CreateDataRequestInput!): CreateDataRequestResponse!
+  """Creates a new editorial list. Requires authentication."""
+  createEditorialList(input: CreateEditorialListInput!): EditorialList!
+  """Updates an existing editorial list. Requires authentication."""
+  updateEditorialList(id: ID!, input: UpdateEditorialListInput!): EditorialList!
+  """Adds an item to an editorial list. Requires authentication."""
+  addItemToEditorialList(listId: ID!, input: AddEditorialListItemInput!): EditorialList!
+  """Updates an item in an editorial list. Requires authentication."""
+  updateEditorialListItem(listId: ID!, itemId: ID!, input: UpdateEditorialListItemInput!): EditorialList!
+  """Removes an item from an editorial list. Requires authentication."""
+  removeItemFromEditorialList(listId: ID!, itemId: ID!): Boolean!
+  """Archives an editorial list. Requires authentication."""
+  archiveEditorialList(id: ID!): Boolean!
+  """Restores an archived editorial list. Requires authentication."""
+  restoreEditorialList(id: ID!): Boolean!
+  createEmailProvider(input: CreateEmailProviderInput!): EmailProvider!
+  updateEmailProvider(identifier: String!, input: UpdateEmailProviderInput!): EmailProvider!
+  deleteEmailProvider(identifier: String!): Boolean!
+  createEmailTemplate(input: CreateEmailTemplateInput!): EmailTemplate!
+  createEmailTemplateVersion(templateId: ID!, input: CreateEmailTemplateVersionInput!): EmailTemplateVersion!
+  createEmailTemplatePartial(input: CreateEmailTemplatePartialInput!): EmailTemplatePartial!
+  archiveEmailTemplate(templateId: ID!): Boolean!
+  archiveEmailTemplatePartial(partialId: ID!): Boolean!
+  deleteEmailTemplate(templateId: ID!): Boolean!
+  deleteEmailTemplatePartial(partialId: ID!): Boolean!
+  deleteEmailTemplateVersion(versionId: ID!): Boolean!
+  restoreEmailTemplate(templateId: ID!): Boolean!
+  restoreEmailTemplatePartial(partialId: ID!): Boolean!
+  renderMjml(input: RenderMjmlInput!): RenderMjmlResult!
+  """Create a new external critic review (typically used by import agents)."""
+  createExternalCriticReview(input: CreateExternalCriticReviewInput!): ExternalCriticReview!
+  """Delete an external critic review by its ID."""
+  deleteExternalCriticReview(id: ID!): Boolean!
+  triggerExternalReviewFetchJob(workId: ID!, input: TriggerExternalReviewFetchJobInput): ExternalReviewFetchJob!
+  """Create a new group"""
+  createGroup(input: CreateGroupInput!): IAMGroup!
+  """Update an existing group"""
+  updateGroup(identifier: ID!, input: UpdateGroupInput!): IAMGroup!
+  """Delete a single group"""
+  deleteGroup(identifier: ID!): Boolean!
+  """Delete multiple groups"""
+  deleteGroups(identifiers: [ID!]!): Boolean!
+  """Enable multiple groups"""
+  enableGroups(identifiers: [ID!]!): Boolean!
+  """Disable multiple groups"""
+  disableGroups(identifiers: [ID!]!): Boolean!
+  """Add users to a group"""
+  addUsersToGroup(identifier: ID!, input: UpdateGroupUsersInput!): Boolean!
+  """Remove users from a group"""
+  removeUsersFromGroup(identifier: ID!, userIds: [ID!]!): Boolean!
+  """Assign roles to a group (replaces existing roles)"""
+  assignRolesToGroup(identifier: ID!, input: UpdateGroupRolesInput!): Boolean!
+  """Remove specific roles from a group"""
+  removeRolesFromGroup(identifier: ID!, roleIds: [ID!]!): Boolean!
+  """
+  Initiates an identity verification request for the authenticated user.
+  The user's IP and region are automatically determined from the request context.
+  """
+  initiateIdentityVerification(input: InitiateVerificationRequestInput!): IdentityVerificationResult!
+  """Mark specified in-app notifications as read."""
+  markInAppNotificationsAsRead(notificationIds: [String!]!): Boolean!
+  """Mark specified in-app notifications as unread."""
+  markInAppNotificationsAsUnread(notificationIds: [String!]!): Boolean!
+  """Mark all in-app notifications as read for the current user."""
+  markAllInAppNotificationsAsRead: Boolean!
+  """Archive specified in-app notifications."""
+  archiveInAppNotifications(notificationIds: [String!]!): Boolean!
+  """Delete specified in-app notifications."""
+  deleteInAppNotifications(notificationIds: [String!]!): Boolean!
+  addMedia(input: AddMediaInput!): MediaItem!
+  getPresignedUploadUrl(input: GetPresignedUploadUrlInput!): PresignedUploadUrl!
+  updateMedia(id: ID!, input: UpdateMediaInput!): MediaItem!
+  deleteMedia(id: ID!): Boolean!
+  deleteMediaByIds(ids: [ID!]!): Boolean!
+  """
+  Resolve a moderation escalation with a human decision. This will resume the suspended workflow.
+  Requires authentication.
+  """
+  resolveModerationEscalation(id: ID!, input: ResolveModerationEscalationInput!): ModerationEscalation!
+  """Add a new person to the catalogue."""
+  addPerson(input: AddPersonInput!): Person!
+  """Update an existing person in the catalogue."""
+  updatePerson(identifier: String!, input: UpdatePersonInput!): Person!
+  """
+  Delete a person from the catalogue by their unique identifier (ID or slug).
+  """
+  deletePerson(identifier: String!): Boolean!
+  """Delete multiple people from the catalogue by their unique identifiers."""
+  deletePeople(identifiers: [String!]!): Boolean!
+  """Create multiple permissions."""
+  createPermissions(input: CreatePermissionsInput!): [Permission!]!
+  """Update a permission by its ID."""
+  updatePermission(id: ID!, input: UpdatePermissionInput!): Permission!
+  """Delete a permission by its ID."""
+  deletePermission(id: ID!): Boolean!
+  """Create a new platform with the provided details."""
+  createPlatform(input: CreatePlatformInput!): Platform!
+  """Update an existing platform identified by its unique identifier."""
+  updatePlatform(identifier: String!, input: UpdatePlatformInput!): Platform!
+  """Delete a platform identified by its unique identifier."""
+  deletePlatform(identifier: String!): Boolean!
+  """Delete multiple platforms identified by their unique identifiers."""
+  deletePlatforms(identifiers: [String!]!): Boolean!
+  """Draft a new review for a work."""
+  draftReview(input: AddReviewInput!): Review!
+  """draft a new critic review for a work."""
+  draftCriticReview(input: AddReviewInput!): Review!
+  """Submit a drafted review for moderation."""
+  submitReview(reviewId: ID!): Boolean!
+  """Upvote a review to show appreciation for its content."""
+  upvoteReview(reviewId: ID!): Boolean!
+  """Downvote a review to indicate disagreement or dislike."""
+  downvoteReview(reviewId: ID!): Boolean!
+  """Approve a review, changing its status to 'PUBLISHED'."""
+  approveReview(id: ID!): Review!
+  """
+  Reject a review, changing its status to 'DECLINED' with an optional reason.
+  """
+  rejectReview(id: ID!, input: RejectReviewInput!): Review!
+  """Create multiple roles"""
+  createRoles(input: CreateRolesInput!): [IAMRole!]!
+  """Update a role by ID"""
+  updateRole(id: ID!, input: UpdateRoleInput!): IAMRole!
+  """Assign permissions to a role"""
+  assignPermissionsToRole(roleId: ID!, input: AssignPermissionsToRoleInput!): Boolean!
+  """Remove a permission from a role"""
+  removePermissionFromRole(roleId: ID!, permissionId: ID!): Boolean!
+  """Create a new service account."""
+  createServiceAccount(input: CreateServiceAccountInput!): ServiceAccount!
+  """Update an existing service account."""
+  updateServiceAccount(id: ID!, input: UpdateServiceAccountInput!): ServiceAccount!
+  """Delete a service account by its ID."""
+  deleteServiceAccount(id: ID!): Boolean!
+  createTenant(input: CreateTenantInput!): IAMTenant!
+  updateTenant(identifier: String!, input: UpdateTenantInput!): IAMTenant!
+  """Draft a new trivia item for a work."""
+  draftTrivia(input: DraftTriviaInput!): Trivia!
+  """Update an existing trivia item."""
+  updateTrivia(id: ID!, input: UpdateTriviaInput!): Trivia!
+  """Submit a drafted trivia item for review."""
+  submitTrivia(id: ID!): Boolean!
+  """Approve a trivia item, changing its status to 'PUBLISHED'."""
+  approveTrivia(id: ID!): Trivia!
+  """Decline a trivia item, changing its status to 'DECLINED'."""
+  declineTrivia(id: ID!, input: DeclineTriviaInput!): Trivia!
+  """Upvote a trivia item."""
+  upvoteTrivia(id: ID!): Boolean!
+  """Downvote a trivia item."""
+  downvoteTrivia(id: ID!): Boolean!
+  """Archive a trivia item."""
+  archiveTrivia(id: ID!): Boolean!
+  """Restore an archived trivia item."""
+  restoreTrivia(id: ID!): Boolean!
+  """Delete a trivia item."""
+  deleteTrivia(id: ID!): Boolean!
+  createIAMUser(input: CreateUserInput!): IAMUser!
+  signupWithEmail(input: SignupWithEmailInput!): TokenPair!
+  requestPasswordReset(identifier: String!): Boolean!
+  verifyPasswordResetToken(input: VerifyPasswordResetTokenInput!): Boolean!
+  """Request email verification for the authenticated user."""
+  requestEmailVerification: Boolean!
+  """Complete the email verification process using the provided token."""
+  verifyEmail(input: VerifyEmailInput!): Boolean!
+  """Update the authenticated user's profile information."""
+  updateCurrentUser(input: UpdateCurrentUserInput!): User!
+  """Update the authenticated user's profile information."""
+  updateIAMUser(identifier: String!, input: UpdateIAMUserInput!): IAMUser!
+  """Update the authenticated user's notification preferences."""
+  updateUserNotificationPreferences(input: UpdateUserNotificationPreferencesInput!): UserNotificationPreferences!
+  """
+  Change or set the password for the authenticated user.
+  If the user has an existing password, currentPassword is required for verification.
+  OAuth users without a password can omit currentPassword to set their first password.
+  Invalidates all existing sessions upon success.
+  """
+  changePassword(input: ChangePasswordInput!): Boolean!
+  """
+  Revoke/unlink an OAuth provider connection from the authenticated user.
+  Cannot revoke if it would leave the user with no way to sign in (must set password first).
+  """
+  revokeOAuthConnection(provider: String!): Boolean!
+  """
+  Update the authenticated user's email subscription preferences for marketing emails.
+  """
+  updateEmailSubscriptionPreferences(input: UpdateEmailSubscriptionPreferencesInput!): EmailSubscriptionPreferences!
+  """Add a new work (movie, TV show, documentary, etc.) to the catalogue."""
+  addWork(input: AddWorkInput!): Work!
+  """Add media items to a specific work identified by its ID or slug."""
+  addWorkMedia(identifier: String!, input: AddWorkMediaInput!): [MediaItem!]!
+  """
+  Add availability information to a specific work identified by its ID or slug.
+  """
+  addAvailability(identifier: String!, input: [AddWorkAvailabilityInput!]!): [WorkAvailability!]!
+  """Update availability information for a specific work."""
+  updateAvailability(identifier: String!, availabilityId: String!, input: UpdateWorkAvailabilityInput!): WorkAvailability!
+  """Remove availability information from a specific work."""
+  removeAvailability(identifier: String!, availabilityId: String!): Boolean!
+  """Add an episode to a series work identified by its ID or slug."""
+  addEpisode(identifier: String!, input: AddEpisodeInput!): Work!
+  """Add a cast member to a specific work identified by its ID or slug."""
+  addWorkCastMember(identifier: String!, input: AddWorkCastMemberInput!): Boolean!
+  """Add a crew member to a specific work identified by its ID or slug."""
+  addWorkCrewMember(identifier: String!, input: AddWorkCrewMemberInput!): Boolean!
+  """Update a cast member for a specific work identified by its ID or slug."""
+  updateWorkCastMember(identifier: String!, creditId: String!, input: UpdateWorkCreditInput!): WorkCredit!
+  """Update a crew member for a specific work identified by its ID or slug."""
+  updateWorkCrewMember(identifier: String!, creditId: String!, input: UpdateWorkCreditInput!): WorkCredit!
+  """
+  Remove a cast or crew credit from a specific work identified by its ID or slug.
+  """
+  removeWorkCredit(identifier: String!, creditId: String!): Boolean!
+  """Archive a work by setting its deletedAt timestamp."""
+  archiveWork(identifier: String!): Boolean!
+  """Permanently delete a work from the catalogue."""
+  deleteWork(identifier: String!): Boolean!
+  """Rate a work (movie or TV show) with a value between 1 and 10."""
+  rateWork(identifier: String!, value: Int!): Boolean!
+  """Restore an archived work by clearing its deletedAt timestamp."""
+  restoreWork(identifier: String!): Work!
+  """Update a rating value for a specific rating ID."""
+  updateRating(ratingId: String!, value: Int!): Boolean!
+  """Add a work to the authenticated user's watchlist."""
+  addToWatchlist(workId: String!): Boolean!
+  """Remove a work from the authenticated user's watchlist."""
+  removeFromWatchlist(workId: String!, workType: WorkType!): Boolean!
+  """mark a work as watched in the authenticated user's watched list."""
+  markAsWatched(workId: String!): Boolean!
+  """Remove a work from the authenticated user's watched list."""
+  removeFromWatched(workId: String!, workType: WorkType!): Boolean!
+  """Marked a work as liked by the authenticated user."""
+  likeWork(workId: String!): Boolean!
+  """Mark a work as disliked by the authenticated user."""
+  dislikeWork(workId: String!): Boolean!
+  """Remove a like/dislike from a work by the authenticated user."""
+  removeLike(workId: String!): Boolean!
+  """Update a work identified by its ID or slug."""
+  updateWork(identifier: String!, input: UpdateWorkInput!): Work!
+  """Import works from external sources (e.g., TMDB)."""
+  importWorks(input: ImportWorksInput!): Boolean!
+}
+
+enum ArticleStatus {
+  DRAFT
+  PUBLISHED
+  UNPUBLISHED
+  ARCHIVED
+}
+
+enum ArticleTagEntityType {
+  WORK
+  PERSON
+}
+
+type ArticleTag {
+  id: ID!
+  entityType: ArticleTagEntityType!
+  entityId: ID!
+  createdAt: String!
+  work: Work
+  person: Person
+}
+
+type Article {
+  id: ID!
+  userId: ID!
+  author: User
+  slug: String!
+  title: String!
+  coverImageId: ID
+  coverImage: Media
+  summary: String
+  seoTitle: String
+  seoDescription: String
+  seoKeywords: [String!]
+  content: String!
+  status: ArticleStatus!
+  tags: [ArticleTag!]
+  createdAt: String!
+  updatedAt: String!
+  archivedAt: String
+  publishedAt: String
+}
+
+type ArticlesConnection {
+  items: [Article!]!
+  pageInfo: PageInfo!
+}
+
+input CreateArticleInput {
+  title: String!
+  slug: String
+  coverImageId: ID
+  summary: String
+  content: String!
+  seoTitle: String
+  seoDescription: String
+  seoKeywords: [String!]
+  workIds: [ID!]
+  personIds: [ID!]
+}
+
+input UpdateArticleInput {
+  title: String
+  slug: String
+  coverImageId: ID
+  summary: String
+  content: String
+  seoTitle: String
+  seoDescription: String
+  seoKeywords: [String!]
+  workIds: [ID!]
+  personIds: [ID!]
+}
+
+input GetArticlesInput {
+  pagination: PaginationInput! = {page: 1, pageSize: 20}
+  sort: SortInput! = {sortBy: "createdAt", sortOrder: desc}
+  status: [ArticleStatus!]
+  userIds: [ID!]
+  archived: Boolean = false
+}
+
+input GetPublishedArticlesInput {
+  pagination: PaginationInput! = {page: 1, pageSize: 20}
+  sort: SortInput! = {sortBy: "publishedAt", sortOrder: desc}
+  "Filter articles by specific author user IDs"
+  userIds: [ID!]
+}
+
+input PublishArticleInput {
+  "Optional publish date for the article in ISO 8601 format. If not provided, the current date will be used."
+  publishDate: String
+}
+
+type TokenPair {
+  accessToken: String!
+  refreshToken: String!
+}
+
+type UIConfiguration {
+  loginButtonText: String!
+  signupButtonText: String!
+  loginButtonClass: String
+  signupButtonClass: String
+}
+
+type OAuthProvider {
+  id: String!
+  name: String!
+  displayName: String!
+  displayOrder: Int!
+  uiConfiguration: UIConfiguration!
+  createdAt: String!
+  updatedAt: String!
+}
+
+"""Represents an active user session on a device."""
+type Session {
+  """Unique identifier for the session (hash of userId + deviceId)."""
+  id: ID!
+  """Device ID associated with this session."""
+  deviceId: ID!
+  """User agent string from the device."""
+  userAgent: String!
+  """IP address of the device."""
+  ipAddress: String!
+  """Location of the device (if available)."""
+  location: String
+  """When the session was created."""
+  createdAt: String!
+  """When the session expires."""
+  expiresAt: String!
+  """Whether this is the current session making the request."""
+  isCurrent: Boolean!
+}
+
+scalar JSON
+
+enum SortOrder {
+  asc
+  desc
+}
+
+input PaginationInput {
+  page: Int! = 1
+  pageSize: Int! = 20
+}
+
+input SortInput {
+  sortBy: String! = "createdAt"
+  sortOrder: SortOrder! = desc
+}
+
+type PageInfo {
+  page: Int!
+  pageSize: Int!
+  total: Int!
+  totalPages: Int!
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+}
+
+input BaseGetAllInput {
+  pagination: PaginationInput! = {page: 1, pageSize: 20}
+  sort: SortInput! = {sortBy: "createdAt", sortOrder: desc}
+}
+
+"""Represents the type of critic source."""
+enum CriticSourceType {
+  "Traditional publication (newspapers, magazines)"
+  PUBLICATION
+  "Review aggregator site"
+  AGGREGATOR
+  "Personal or professional blog"
+  BLOG
+  "General website"
+  WEBSITE
+  "Print or digital magazine"
+  MAGAZINE
+}
+
+"""
+Configuration for extracting reviews from a critic source.
+These hints help AI agents or scrapers locate review data on source pages.
+"""
+input ScrapingConfigInput {
+  "CSS selector for the review container element"
+  reviewSelector: String
+  "CSS selector for the review title"
+  titleSelector: String
+  "CSS selector for the review excerpt/body"
+  excerptSelector: String
+  "Whether this source uses a rating system"
+  hasRating: Boolean
+  "Whether ratings are inconsistently present (some reviews have ratings, some don't)"
+  ratingInconsistent: Boolean
+  "CSS selector for the rating element"
+  ratingSelector: String
+  "Expected rating format (e.g., 'X/5', 'X/10', 'X/100', 'letter', 'stars')"
+  ratingFormat: String
+  "Regex pattern to extract rating value from text"
+  ratingPattern: String
+  "CSS selector for the author name"
+  authorSelector: String
+  "CSS selector for the author profile URL"
+  authorUrlSelector: String
+  "CSS selector for the publication date"
+  dateSelector: String
+  "Date format used by the source (e.g., 'MMMM d, yyyy', 'ISO8601')"
+  dateFormat: String
+  "URL pattern (regex) for identifying review pages on this source"
+  urlPattern: String
+  "Pattern in title/URL that identifies content as a review (e.g., '[Review]')"
+  reviewIdentifier: String
+  "CSS selector for category links"
+  categorySelector: String
+  "CSS selector for tag links"
+  tagSelector: String
+  "Whether the source has JSON-LD structured data"
+  hasJsonLd: Boolean
+  "JSON-LD schema type (e.g., 'BlogPosting', 'Review', 'Article')"
+  jsonLdType: String
+}
+
+"""Rate limiting configuration for accessing a critic source."""
+input RateLimitsInput {
+  "Maximum requests per minute"
+  requestsPerMinute: Int
+  "Maximum requests per hour"
+  requestsPerHour: Int
+  "Maximum requests per day"
+  requestsPerDay: Int
+  "Minimum delay between requests in milliseconds"
+  minDelayMs: Int
+  "Whether to respect robots.txt"
+  respectRobotsTxt: Boolean
+}
+
+"""Scraping configuration output type for reading critic source settings."""
+type ScrapingConfig {
+  "CSS selector for the review container element"
+  reviewSelector: String
+  "CSS selector for the review title"
+  titleSelector: String
+  "CSS selector for the review excerpt/body"
+  excerptSelector: String
+  "Whether this source uses a rating system"
+  hasRating: Boolean
+  "Whether ratings are inconsistently present"
+  ratingInconsistent: Boolean
+  "CSS selector for the rating element"
+  ratingSelector: String
+  "Expected rating format"
+  ratingFormat: String
+  "Regex pattern to extract rating value from text"
+  ratingPattern: String
+  "CSS selector for the author name"
+  authorSelector: String
+  "CSS selector for the author profile URL"
+  authorUrlSelector: String
+  "CSS selector for the publication date"
+  dateSelector: String
+  "Date format used by the source"
+  dateFormat: String
+  "URL pattern (regex) for identifying review pages"
+  urlPattern: String
+  "Pattern in title/URL that identifies content as a review"
+  reviewIdentifier: String
+  "CSS selector for category links"
+  categorySelector: String
+  "CSS selector for tag links"
+  tagSelector: String
+  "Whether the source has JSON-LD structured data"
+  hasJsonLd: Boolean
+  "JSON-LD schema type"
+  jsonLdType: String
+}
+
+"""Rate limiting configuration output type."""
+type RateLimits {
+  "Maximum requests per minute"
+  requestsPerMinute: Int
+  "Maximum requests per hour"
+  requestsPerHour: Int
+  "Maximum requests per day"
+  requestsPerDay: Int
+  "Minimum delay between requests in milliseconds"
+  minDelayMs: Int
+  "Whether to respect robots.txt"
+  respectRobotsTxt: Boolean
+}
+
+"""
+Represents a critic source configuration for fetching external reviews.
+"""
+type CriticSource {
+  "Unique identifier for the critic source"
+  id: ID!
+  "Name of the critic source"
+  name: String!
+  "Domain of the critic source (e.g., variety.com)"
+  domain: String!
+  "Type of the source"
+  sourceType: CriticSourceType!
+  "Trust score of the critic source (0.00 to 1.00)"
+  trustScore: Float!
+  "Scraping configuration for fetching reviews from this source"
+  scrapingConfig: ScrapingConfig
+  "Rate limiting configuration for accessing this source"
+  rateLimits: RateLimits
+  "Priority of the critic source for retrieval (higher = more priority)"
+  priority: Int!
+  "Indicates whether the critic source is active"
+  isActive: Boolean!
+  "Creation date of the record"
+  createdAt: String!
+  "Last updated date of the record"
+  updatedAt: String!
+}
+
+type CriticSourceConnection {
+  items: [CriticSource!]!
+  pageInfo: PageInfo!
+}
+
+input ListCriticSourcesInput {
+  "Pagination parameters"
+  pagination: PaginationInput! = {page: 1, pageSize: 20}
+  "Sorting parameters"
+  sort: SortInput! = {sortBy: "priority", sortOrder: desc}
+  "Filter by active status"
+  isActive: Boolean
+  "Filter by source type"
+  sourceType: CriticSourceType
+}
+
+input CreateCriticSourceInput {
+  "Name of the critic source"
+  name: String!
+  "Domain of the critic source"
+  domain: String!
+  "Type of the source"
+  sourceType: CriticSourceType!
+  "Trust score (0.00 to 1.00)"
+  trustScore: Float = 0.5
+  "Scraping configuration for fetching reviews"
+  scrapingConfig: ScrapingConfigInput
+  "Rate limiting configuration"
+  rateLimits: RateLimitsInput
+  "Priority (higher = more priority)"
+  priority: Int = 0
+  "Whether the source is active"
+  isActive: Boolean = true
+}
+
+input UpdateCriticSourceInput {
+  "Name of the critic source"
+  name: String
+  "Type of the source"
+  sourceType: CriticSourceType
+  "Trust score (0.00 to 1.00)"
+  trustScore: Float
+  "Scraping configuration for fetching reviews"
+  scrapingConfig: ScrapingConfigInput
+  "Rate limiting configuration"
+  rateLimits: RateLimitsInput
+  "Priority"
+  priority: Int
+  "Whether the source is active"
+  isActive: Boolean
+}
+
+"""Category of data being requested"""
+enum DataRequestCategory {
+  WORKS
+  PEOPLE
+  COMPANIES
+  GENRES
+  AWARDS
+}
+
+"""Status of a data request"""
+enum DataRequestStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+"""Type of work (for WORKS category requests)"""
+enum WorkType {
+  MOVIE
+  TV_SHOW
+  WEB_SERIES
+  EPISODE
+  DOCUMENTARY
+  MUSIC_VIDEO
+  SHORT_FILM
+  PODCAST
+  OTHER
+}
+
+"""Input for creating a new data request"""
+input CreateDataRequestInput {
+  """Category of data being requested"""
+  category: DataRequestCategory!
+  """Search query associated with the data request"""
+  searchQuery: String!
+  """Email address of the requester"""
+  requesterEmail: String!
+  """Type of work being requested (for WORKS category)"""
+  workType: WorkType
+  """Release year of the requested data (for WORKS category)"""
+  releaseYear: Int
+}
+
+"""Input for querying data requests"""
+input GetDataRequestsInput {
+  """Pagination parameters"""
+  pagination: PaginationInput = {page: 1, pageSize: 10}
+  """Sorting parameters"""
+  sort: SortInput = {sortBy: "createdAt", sortOrder: desc}
+  """Filter by categories"""
+  categories: [DataRequestCategory!]
+  """Filter by status"""
+  status: [DataRequestStatus!]
+  """Filter by requester email"""
+  requesterEmail: String
+  """Filter by failure reason codes"""
+  failureReasonCodes: [String!]
+}
+
+"""A data request record"""
+type DataRequest {
+  """Unique identifier for the data request"""
+  id: ID!
+  """Category of the data request"""
+  category: DataRequestCategory!
+  """Search query associated with the data request"""
+  searchQuery: String!
+  """Email address of the requester"""
+  requesterEmail: String!
+  """Type of work being requested (null if not applicable)"""
+  workType: WorkType
+  """Release year of the requested data (null if not applicable)"""
+  releaseYear: Int
+  """Current status of the data request"""
+  status: DataRequestStatus!
+  """Failure reason code if the request failed"""
+  failureReasonCode: String
+  """Detailed failure reason message if the request failed"""
+  failureReasonMessage: String
+  """Timestamp when processing started"""
+  startedAt: String
+  """Timestamp when processing completed"""
+  completedAt: String
+  """Timestamp when the data request was created"""
+  createdAt: String!
+  """Timestamp when the data request was last updated"""
+  updatedAt: String!
+}
+
+"""Paginated connection for data requests"""
+type DataRequestConnection {
+  """List of data request items"""
+  items: [DataRequest!]!
+  """Pagination information"""
+  pageInfo: PageInfo!
+}
+
+"""Response for creating a data request"""
+type CreateDataRequestResponse {
+  """Success message"""
+  message: String!
+}
+
+enum EditorialListStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum EditorialListType {
+  WORK
+  PEOPLE
+  MIXED
+}
+
+enum EditorialListItemType {
+  WORK
+  PERSON
+}
+
+type EditorialListItem {
+  id: ID!
+  listId: ID!
+  itemId: ID!
+  type: EditorialListItemType!
+  position: Int!
+  pinned: Boolean!
+  createdAt: String!
+  updatedAt: String!
+  work: Work
+  person: Person
+}
+
+type EditorialList {
+  id: ID!
+  authorId: ID!
+  author: User
+  name: String!
+  type: EditorialListType!
+  subtitle: String
+  description: String
+  status: EditorialListStatus!
+  weight: Int!
+  items: [EditorialListItem!]!
+  publishedAt: String
+  expiresAt: String
+  createdAt: String!
+  updatedAt: String!
+  deletedAt: String
+}
+
+type EditorialListsConnection {
+  items: [EditorialList!]!
+  pageInfo: PageInfo!
+}
+
+input CreateEditorialListInput {
+  name: String!
+  type: EditorialListType!
+  subtitle: String
+  description: String
+  weight: Int
+  expiresAt: String
+}
+
+input UpdateEditorialListInput {
+  name: String
+  subtitle: String
+  description: String
+  weight: Int
+  expiresAt: String
+  publishedAt: String
+  status: EditorialListStatus
+}
+
+input AddEditorialListItemInput {
+  itemType: EditorialListItemType!
+  itemId: ID!
+  pinned: Boolean
+  position: Int
+}
+
+input UpdateEditorialListItemInput {
+  pinned: Boolean
+  position: Int
+}
+
+input GetEditorialListsInput {
+  pagination: PaginationInput! = {page: 1, pageSize: 20}
+  sort: SortInput! = {sortBy: "weight", sortOrder: desc}
+  status: [EditorialListStatus!]
+  archived: Boolean = false
+  expired: Boolean = false
+}
+
+type EmailProvider {
+  id: ID!
+  identifier: String!
+  name: String!
+  enabled: Boolean!
+  priority: Int!
+  reliability: Float!
+  cost: Float!
+  dailyLimit: Int!
+  monthlyLimit: Int!
+  config: JSON
+  createdAt: String!
+  updatedAt: String!
+}
+
+type EmailProvidersConnection {
+  items: [EmailProvider!]!
+  pageInfo: PageInfo!
+}
+
+input CreateEmailProviderInput {
+  identifier: String!
+  name: String!
+  priority: Int
+  isEnabled: Boolean
+  dailyLimit: Int!
+  monthlyLimit: Int!
+  reliabilityScore: Float!
+  cost: Float!
+  configuration: JSON
+}
+
+input UpdateEmailProviderInput {
+  identifier: String
+  name: String
+  priority: Int
+  isEnabled: Boolean
+  dailyLimit: Int
+  monthlyLimit: Int
+  reliabilityScore: Float
+  cost: Float
+  configuration: JSON
+}
+
+input ListEmailProvidersInput {
+  enabled: Boolean
+  pagination: PaginationInput
+  sort: SortInput
+}
+
+type EmailTemplate {
+  id: ID!
+  templateKey: String!
+  defaultLocale: String!
+  category: String!
+  createdAt: String!
+  updatedAt: String!
+  archivedAt: String
+}
+
+type EmailTemplateVersion {
+  id: ID!
+  templateId: ID!
+  version: Int!
+  locale: String!
+  templateName: String!
+  description: String
+  subjectTemplate: String
+  engine: String!
+  mjmlSource: String!
+  htmlBody: String!
+  textBody: String
+  requiredVariables: [String!]!
+  defaultValues: JSON
+  createdAt: String!
+}
+
+type EmailTemplatePartial {
+  id: ID!
+  path: String!
+  locale: String!
+  category: String
+  content: String!
+  createdAt: String!
+  updatedAt: String!
+  archivedAt: String
+}
+
+type EmailTemplatesConnection {
+  items: [EmailTemplate!]!
+  pageInfo: PageInfo!
+}
+
+type EmailTemplateVersionsConnection {
+  items: [EmailTemplateVersion!]!
+  pageInfo: PageInfo!
+}
+
+type EmailTemplatePartialsConnection {
+  items: [EmailTemplatePartial!]!
+  pageInfo: PageInfo!
+}
+
+input CreateEmailTemplateInput {
+  templateKey: String!
+  defaultLocale: String
+  category: String!
+}
+
+input CreateEmailTemplateVersionInput {
+  locale: String
+  templateName: String!
+  description: String
+  subjectTemplate: String
+  engine: String
+  mjmlSource: String!
+  textBody: String
+  requiredVariables: [String!]
+  defaultValues: JSON
+}
+
+input CreateEmailTemplatePartialInput {
+  path: String!
+  locale: String
+  category: String
+  content: String!
+}
+
+input ListEmailTemplatesInput {
+  active: String
+  pagination: PaginationInput
+  sort: SortInput
+}
+
+input ListEmailTemplateVersionsInput {
+  pagination: PaginationInput
+  sort: SortInput
+}
+
+input ListEmailTemplatePartialsInput {
+  category: String
+  locale: String
+  active: String
+  pagination: PaginationInput
+  sort: SortInput
+}
+
+input RenderMjmlInput {
+  mjml: String!
+  locale: String
+  resolvePartials: Boolean
+  validateOnly: Boolean
+}
+
+type MjmlError {
+  line: Int
+  message: String!
+  tagName: String
+  formattedMessage: String!
+}
+
+type RenderMjmlResult {
+  html: String
+  mjmlVersion: String
+  errors: [MjmlError!]!
+  warnings: [String!]!
+  resolvedMjml: String
+}
+
+"""Represents an external critic review fetched from third-party sources."""
+type ExternalCriticReview {
+  "Unique identifier for the external critic review"
+  id: ID!
+  "ID of the work being reviewed"
+  workId: ID!
+  "Type of the work being reviewed"
+  workType: WorkType!
+  "The work being reviewed"
+  work: Work
+  "Name of the external source providing the review"
+  sourceName: String!
+  "Domain of the external source (e.g., variety.com)"
+  sourceDomain: String!
+  "Full URL to the external review"
+  sourceUrl: String!
+  "SHA256 hash of the source URL for deduplication"
+  sourceUrlHash: String!
+  "Name of the author of the external review"
+  authorName: String
+  "URL to the author's profile or page"
+  authorUrl: String
+  "Title of the external review"
+  title: String!
+  "Brief excerpt or summary of the external review"
+  excerpt: String!
+  "Original rating as given in the external review (e.g., 4 stars, B+)"
+  originalRating: String
+  "Normalized rating from the external review (on a scale of 0-10)"
+  normalizedRating: Float
+  "Sentiment of the review"
+  sentiment: ReviewSentiment!
+  "ISO 639-1 code of the review language (e.g., en, fr)"
+  language: String!
+  "Score indicating the relevance of the review to the work (0.0 to 1.0)"
+  relevanceScore: Float!
+  "Score indicating the confidence in the accuracy of the review data (0.0 to 1.0)"
+  confidenceScore: Float!
+  "Publication date of the external review"
+  publishedAt: String!
+  "ID of the fetch job that retrieved this review"
+  fetchJobId: String
+  "Timestamp when the review was fetched/ingested"
+  fetchedAt: String
+  "Creation date of the record"
+  createdAt: String!
+  "Last updated date of the record"
+  updatedAt: String!
+}
+
+type ExternalCriticReviewConnection {
+  items: [ExternalCriticReview!]!
+  pageInfo: PageInfo!
+}
+
+input ListExternalCriticReviewsInput {
+  "Pagination parameters"
+  pagination: PaginationInput! = {page: 1, pageSize: 20}
+  "Sorting parameters"
+  sort: SortInput! = {sortBy: "publishedAt", sortOrder: desc}
+  "Filter by source domain"
+  sourceDomain: String
+  "Filter by fetch job ID"
+  fetchJobId: String
+}
+
+"""
+Input for the top-level listExternalCriticReviews query.
+Supports filtering across all reviews, optionally by work.
+"""
+input ListAllExternalCriticReviewsInput {
+  "Pagination parameters"
+  pagination: PaginationInput! = {page: 1, pageSize: 20}
+  "Sorting parameters"
+  sort: SortInput! = {sortBy: "publishedAt", sortOrder: desc}
+  "Filter by work IDs (optional - returns all reviews if not specified)"
+  workIds: [ID!]
+  "Filter by source domains"
+  sourceDomains: [String!]
+  "Filter by fetch job ID"
+  fetchJobId: String
+}
+
+input CreateExternalCriticReviewInput {
+  "ID of the work being reviewed"
+  workId: ID!
+  "Type of the work being reviewed"
+  workType: WorkType!
+  "Name of the external source providing the review"
+  sourceName: String!
+  "Domain of the external source"
+  sourceDomain: String!
+  "Full URL to the external review"
+  sourceUrl: String!
+  "Name of the author of the external review"
+  authorName: String
+  "URL to the author's profile or page"
+  authorUrl: String
+  "Title of the external review"
+  title: String!
+  "Brief excerpt or summary of the external review"
+  excerpt: String!
+  "Original rating as given in the external review"
+  originalRating: String
+  "Normalized rating (0-10 scale)"
+  normalizedRating: Float!
+  "Sentiment of the review"
+  sentiment: ReviewSentiment!
+  "ISO 639-1 language code"
+  language: String!
+  "Relevance score (0.0 to 1.0)"
+  relevanceScore: Float!
+  "Confidence score (0.0 to 1.0)"
+  confidenceScore: Float!
+  "Publication date of the review (ISO 8601)"
+  publishedAt: String!
+  "ID of the fetch job that retrieved this review"
+  fetchJobId: String
+}
+
+enum ExternalReviewFetchJobStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
+
+enum ExternalReviewFetchJobCreatorType {
+  USER
+  SYSTEM
+}
+
+type ExternalReviewFetchJob {
+  id: ID!
+  workId: ID!
+  work: Work
+  createdBy: ID
+  creatorType: ExternalReviewFetchJobCreatorType!
+  status: ExternalReviewFetchJobStatus!
+  workflowExecutionId: String
+  sources: [String!]!
+  reviewsFound: Int!
+  reviewsImported: Int!
+  skippedDuplicates: Int!
+  attempts: Int!
+  lastError: String
+  completedAt: String
+  createdAt: String!
+  updatedAt: String!
+}
+
+type ExternalReviewFetchJobConnection {
+  items: [ExternalReviewFetchJob!]!
+  pageInfo: PageInfo!
+}
+
+input ListExternalReviewFetchJobsInput {
+  pagination: PaginationInput
+  workId: ID
+  status: [ExternalReviewFetchJobStatus!]
+  sortBy: String
+  sortOrder: SortOrder
+}
+
+input TriggerExternalReviewFetchJobInput {
+  sources: [String!]
+}
+
+enum GroupType {
+  CUSTOMER
+  SYSTEM
+}
+
+type IAMGroup {
+  id: ID!
+  identifier: String!
+  name: String!
+  description: String
+  parentId: ID
+  tenantId: ID
+  groupType: String
+  active: Boolean!
+  users(input: GetGroupUsersInput): IAMUserConnection
+  roles: [IAMRole!]
+  createdAt: String!
+  updatedAt: String!
+}
+
+type IAMGroupConnection {
+  items: [IAMGroup!]!
+  pageInfo: PageInfo!
+}
+
+input CreateGroupInput {
+  name: String!
+  tenantId: ID!
+  groupType: GroupType!
+  parentId: ID
+  description: String
+  active: Boolean = true
+  roles: [ID!] = []
+}
+
+input UpdateGroupInput {
+  name: String
+  parentId: ID
+  description: String
+  groupType: GroupType
+  active: Boolean
+}
+
+input ListGroupsInput {
+  pagination: PaginationInput! = {page: 1, pageSize: 20}
+  sort: SortInput! = {sortBy: "createdAt", sortOrder: desc}
+  tenantIds: [ID!]
+  groupTypes: [String!]
+  active: Boolean
+}
+
+input GetGroupUsersInput {
+  pagination: PaginationInput! = {page: 1, pageSize: 20}
+  sort: SortInput! = {sortBy: "createdAt", sortOrder: desc}
+}
+
+input UpdateGroupUsersInput {
+  userIds: [ID!]!
+}
+
+input UpdateGroupRolesInput {
+  roleIds: [ID!]!
+}
+
+enum IdentifierType {
+  nin
+  bvn
+}
+
+enum IDVProvider {
+  MONO
+}
+
+input IdentifierInput {
+  """The type of identifier to verify (e.g., 'nin', 'bvn')"""
+  type: IdentifierType!
+  """The value of the identifier to verify"""
+  value: String!
+}
+
+input InitiateVerificationRequestInput {
+  """The list of identifiers to verify"""
+  identifiers: [IdentifierInput!]!
+  """Callback URL for redirect after verification (if applicable)"""
+  callbackUrl: String!
+  """
+  Optional subject name for verification context to override value from user profile
+  """
+  subjectName: String
+  """
+  Optional subject email for verification context to override value from user profile
+  """
+  subjectEmail: String
+  """
+  Optional subject phone for verification context to override value from user profile
+  """
+  subjectPhone: String
+  """Bypass region check for identity verification providers"""
+  bypassRegionCheck: Boolean
+  """
+  Provider to use for identity verification (overrides region-based selection)
+  """
+  provider: IDVProvider
+}
+
+type IdentityVerificationResult {
+  """The unique identifier for the verification request"""
+  id: ID!
+  """The URL to redirect the user to for identity verification"""
+  redirectUrl: String
+}
+
+enum NotificationCategory {
+  SYSTEM
+  SECURITY
+  REVIEW
+  TRIVIA
+  MODERATION
+  COMMUNITY
+  GAMIFICATION
+}
+
+enum NotificationPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+type InAppNotificationCounts {
+  totalCount: Int!
+  unreadCount: Int!
+}
+
+type InAppNotification {
+  id: String!
+  userId: String!
+  title: String!
+  message: String!
+  icon: String
+  imageUrl: String
+  actions: JSON
+  category: NotificationCategory!
+  priority: NotificationPriority!
+  isRead: Boolean!
+  readAt: String
+  isArchived: Boolean!
+  archivedAt: String
+  deliveredAt: String
+  expiresAt: String
+  createdAt: String!
+  updatedAt: String!
+}
+
+type InAppNotificationConnection {
+  items: [InAppNotification!]!
+  pageInfo: PageInfo!
+}
+
+enum MediaCategory {
+  HEADSHOT
+  POSTER
+  TRAILER
+  PROMO
+  TEASER
+  CLIP
+  FEATURETTE
+  PROFILE
+  BLOOPERS
+  FULL_EPISODE
+  FEATURE_FILM
+  INTERVIEW
+  BEHIND_THE_SCENES
+  STILL
+  LOGO
+  BACKDROP
+  FANART
+  OTHER
+}
+
+enum MediaType {
+  PHOTO
+  VIDEO
+  YOUTUBE
+}
+
+enum MediaCollectionType {
+  PHOTOS
+  VIDEOS
+}
+
+"""
+Simplified media type for public API responses (used in Work, Person, Article)
+"""
+type Media {
+  id: ID!
+  category: MediaCategory!
+  url: String!
+  thumbnailImageUrl: String
+  title: String!
+  altText: String
+  caption: String
+  description: String
+  primaryColor: String
+  cssColorGradient: String
+  createdAt: String!
+  updatedAt: String!
+}
+
+"""Full media item type with all fields (used for media management)"""
+type MediaItem {
+  id: ID!
+  type: MediaType!
+  category: MediaCategory!
+  title: String!
+  description: String
+  caption: String
+  altText: String
+  url: String!
+  isPublic: Boolean!
+  isActive: Boolean!
+  primaryColor: String
+  thumbnailImageUrl: String
+  cssColorGradient: String
+  createdAt: String!
+  updatedAt: String!
+}
+
+type MediaItemConnection {
+  items: [MediaItem!]!
+  pageInfo: PageInfo!
+}
+
+"""
+Represents an item in a media collection with metadata like order, caption, and featured status
+"""
+type MediaCollectionItem {
+  id: ID!
+  mediaCollectionId: ID!
+  mediaItemId: ID!
+  mediaItem: MediaItem
+  order: Int!
+  caption: String
+  isFeatured: Boolean!
+  createdAt: String!
+  updatedAt: String!
+}
+
+type MediaCollectionItemConnection {
+  items: [MediaCollectionItem!]!
+  pageInfo: PageInfo!
+}
+
+type PresignedUploadUrl {
+  uploadUrl: String!
+  expiration: Float!
+}
+
+input GetPresignedUploadUrlInput {
+  fileName: String!
+  fileType: String!
+  mediaType: MediaType!
+  mediaCategory: MediaCategory!
+}
+
+input AddMediaInput {
+  type: MediaType!
+  category: MediaCategory!
+  title: String!
+  mediaUrl: String
+  externalId: String
+  description: String
+  caption: String
+  altText: String
+}
+
+input ListMediaItemsInput {
+  pagination: PaginationInput!
+  sort: SortInput!
+  mediaTypes: String
+  mediaCategories: String
+  search: String
+}
+
+input UpdateMediaInput {
+  title: String
+  description: String
+  caption: String
+  altText: String
+  isPublic: Boolean
+  isActive: Boolean
+}
+
+"""Represents the type of content that can be moderated."""
+enum ModerationEscalationContentType {
+  "User review content"
+  REVIEW
+  "User post content"
+  POST
+  "Comment on content"
+  COMMENT
+  "Trivia submission"
+  TRIVIA
+}
+
+"""Represents the resolution outcome for a moderation escalation."""
+enum ModerationEscalationResolution {
+  "Content was approved"
+  APPROVED
+  "Content was declined"
+  DECLINED
+}
+
+"""
+Union type representing the possible content types that can be moderated.
+"""
+union TargetContent = Review | Trivia
+
+"""Represents a moderation escalation that requires human review."""
+type ModerationEscalation {
+  id: ID!
+  "Name of the workflow that generated this escalation"
+  workflowName: String!
+  "Execution ID of the workflow instance"
+  executionId: String!
+  "ID of the content being moderated"
+  contentId: ID!
+  "Type of content being moderated"
+  contentType: ModerationEscalationContentType!
+  "Content data being moderated"
+  content: TargetContent
+  "Reason the escalation was created"
+  reason: String!
+  "Decision made by the AI model (if any)"
+  decision: JSON
+  "Timestamp when the escalation was resolved"
+  resolvedAt: String
+  "ID of the user who resolved the escalation"
+  resolvedBy: ID
+  "Resolution outcome"
+  resolution: ModerationEscalationResolution
+  "Timestamp when the escalation was created"
+  createdAt: String!
+  "Timestamp when the escalation was last updated"
+  updatedAt: String!
+}
+
+"""Paginated list of moderation escalations."""
+type ModerationEscalationConnection {
+  items: [ModerationEscalation!]!
+  pageInfo: PageInfo!
+}
+
+"""Input for listing moderation escalations with filters."""
+input ListModerationEscalationsInput {
+  "Pagination parameters"
+  pagination: PaginationInput = {page: 1, pageSize: 20}
+  "Sorting parameters"
+  sort: SortInput = {sortBy: "createdAt", sortOrder: desc}
+  "Filter by content types"
+  contentTypes: [ModerationEscalationContentType!]
+  "Filter by workflow names"
+  workflows: [String!]
+  "Filter by resolution status (true = resolved, false = pending)"
+  resolved: Boolean
+}
+
+"""Input for resolving a moderation escalation."""
+input ResolveModerationEscalationInput {
+  "The resolution decision"
+  resolution: ModerationEscalationResolution!
+  "Optional notes from the reviewer"
+  reviewerNotes: String
+}
+
+enum Gender {
+  NA
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum PersonStatus {
+  DRAFT
+  PUBLISHED
+  UNPUBLISHED
+  ARCHIVED
+}
+
+input GetPeopleInput {
+  pagination: PaginationInput! = {page: 1, pageSize: 20}
+  sort: SortInput! = {sortBy: "name", sortOrder: asc}
+  gender: Gender
+  minAge: Int
+  maxAge: Int
+  bornToday: Boolean
+}
+
+input GetPeopleBornTodayInput {
+  pagination: PaginationInput! = {page: 1, pageSize: 20}
+  sort: SortInput! = {sortBy: "age", sortOrder: asc}
+}
+
+input UpdatePersonInput {
+  headshotId: ID
+  gender: Gender
+  name: String
+  slug: String
+  aliases: [String!]
+  nationality: [String!]
+  bio: String
+  birthDate: String
+  birthName: String
+  birthPlace: String
+  deathDate: String
+  deathPlace: String
+  featured: Boolean
+}
+
+input AddPersonInput {
+  name: String!
+  nationality: [String!]
+  "ULID of the headshot media in the media library"
+  headshotId: ID
+  gender: Gender
+  slug: String
+  birthName: String
+  birthDate: String
+  birthPlace: String
+  deathDate: String
+  deathPlace: String
+  bio: String
+  aliases: [String!]
+  featured: Boolean = false
+}
+
+type PersonLink {
+  url: String!
+  label: String
+  icon: String
+  platform: String!
+}
+
+type Person {
+  id: ID!
+  slug: String!
+  headshotId: ID
+  headshot: Media
+  name: String!
+  age: Int
+  gender: Gender
+  aliases: [String]
+  nationality: [String]
+  bio: String
+  deceased: Boolean!
+  birthDate: String
+  birthName: String
+  birthPlace: String
+  deathDate: String
+  externalLinks: [PersonLink]
+  featured: Boolean!
+  works(pagination: PaginationInput = {page: 1, pageSize: 20}, sort: SortInput = {sortBy: "releaseDate", sortOrder: desc}): WorksConnection
+  status: PersonStatus!
+  verified: Boolean!
+  publishedAt: String
+  unpublishedAt: String
+  claimedAt: String
+  createdAt: String!
+  updatedAt: String!
+}
+
+type PeopleConnection {
+  items: [Person!]!
+  pageInfo: PageInfo!
+}
+
+enum PermissionResource {
+  api_key
+  user
+  user_notification_preference
+  user_email_subscription_preference
+  tenant
+  tenant_user
+  service_account
+  group
+  role
+  permission
+  person
+  work
+  trivia
+  company
+  genre
+  review
+  external_critic_review
+  critic_source
+  post
+  watchlist
+  comment
+  community
+  report
+  media
+  media_collection
+  article
+  editorial_list
+  list
+  platform
+  email_template
+  email_template_partial
+  email_provider
+  email_outbox
+  identity_provider
+  identity_verification_request
+  notification_email_template
+  notification_email_provider
+  notification_email_outbox
+  inapp_notification
+  moderation_escalation
+  moderation_decision
+}
+
+enum PermissionAction {
+  create
+  approve
+  reject
+  read
+  list
+  list_users
+  update
+  archive
+  restore
+  revoke
+  delete
+  add_user
+  remove_user
+}
+
+enum PermissionScope {
+  global
+  tenant
+}
+
+type Permission {
+  id: ID!
+  name: String!
+  resource: PermissionResource!
+  action: PermissionAction!
+  scope: PermissionScope!
+  description: String
+  isActive: Boolean!
+  createdAt: String!
+  updatedAt: String!
+}
+
+input PermissionRequestInput {
+  name: String!
+  resource: PermissionResource!
+  action: PermissionAction!
+  scope: PermissionScope
+  description: String
+}
+
+input CreatePermissionsInput {
+  permissions: [PermissionRequestInput!]!
+}
+
+input UpdatePermissionInput {
+  name: String
+  resource: PermissionResource
+  action: PermissionAction
+  scope: PermissionScope
+  description: String
+  isActive: Boolean
+}
+
+input ListPermissionsInput {
+  resource: PermissionResource
+  scope: PermissionScope
+  sortBy: String = "name"
+  sortOrder: SortOrder = asc
+}
+
+enum PlatformType {
+  PHYSICAL
+  SVOD
+  AVOD
+  TVOD
+  VOD
+}
+
+enum PlatformCategory {
+  STREAMING
+  THEATER
+  CINEMA
+}
+
+type Platform {
+  "The ULID of the Platform"
+  id: ID!
+  "The unique identifier of the Platform"
+  identifier: String!
+  "The name of the Platform"
+  name: String!
+  "The URL of the Platform"
+  url: String!
+  "The logo URL of the Platform"
+  logoUrl: String
+  "The description of the Platform"
+  description: String
+  "The display order of the Platform"
+  displayOrder: Int!
+  "The category of the Platform"
+  category: String
+  "The type of the Platform"
+  type: String!
+  "The regions where the Platform is available"
+  regionalAvailability: [String!]!
+  "Whether the Platform is active"
+  isActive: Boolean!
+  "Whether the Platform is public"
+  isPublic: Boolean!
+  "Whether the Platform is global"
+  isGlobal: Boolean!
+  "The creation timestamp of the Platform"
+  createdAt: String!
+  "The last update timestamp of the Platform"
+  updatedAt: String!
+}
+
+type PlatformConnection {
+  items: [Platform!]!
+  pageInfo: PageInfo!
+}
+
+input CreatePlatformInput {
+  name: String!
+  identifier: String!
+  url: String!
+  logoUrl: String
+  logoId: String
+  description: String
+  displayOrder: Int
+  category: PlatformCategory!
+  type: PlatformType!
+  regionalAvailability: [String!]!
+  isActive: Boolean
+  isPublic: Boolean
+  isGlobal: Boolean
+}
+
+input UpdatePlatformInput {
+  name: String
+  url: String
+  logoUrl: String
+  logoId: String
+  description: String
+  displayOrder: Int
+  category: PlatformCategory
+  type: PlatformType
+  regionalAvailability: [String!]
+  isActive: Boolean
+  isPublic: Boolean
+  isGlobal: Boolean
+}
+
+input ListPlatformsInput {
+  "Pagination parameters"
+  pagination: PaginationInput! = {page: 1, pageSize: 20}
+  "Sorting parameters"
+  sort: SortInput! = {field: "createdAt", order: ASC}
+  "Filter platforms by categories"
+  category: [PlatformCategory!]
+  "Filter platforms by types"
+  type: [PlatformType!]
+  "Filter platforms by active status"
+  isActive: Boolean = true
+  "Filter platforms by public status"
+  isPublic: Boolean
+  "Filter by regions"
+  regions: [String!]
+}
+
+"""Represents the type of reviewer for a work (e.g., user, critic)."""
+enum ReviewerType {
+  USER
+  CRITIC
+}
+
+"""Represents the status of a review."""
+enum ReviewStatus {
+  DRAFT
+  PENDING_REVIEW
+  PUBLISHED
+  DECLINED
+  ARCHIVED
+}
+
+enum ReviewSentiment {
+  POSITIVE
+  NEUTRAL
+  NEGATIVE
+}
+
+"""Represents the reason code for rejecting a review."""
+enum ReviewRejectionReasonCode {
+  "The review contains spammy content"
+  SPAM
+  "The review contains offensive language or content"
+  OFFENSIVE
+  "The review is irrelevant to the work being reviewed"
+  IRRELEVANT
+  "The review contains content that harasses or bullies others"
+  HARASSMENT
+  "The review contains hate speech or discriminatory content"
+  HATE_SPEECH
+  "The review contains spoilers about the work"
+  SPOILERS
+  "The review is suspected to be fake or written by a bot"
+  BOT
+  "The review promotes the author's other works or services"
+  SELF_PROMOTION
+  "Other reason not listed"
+  OTHER
+}
+
+"""Represents the severity level of a review rejection."""
+enum ReviewRejectionSeverity {
+  "Low severity rejection"
+  LOW
+  "Medium severity rejection"
+  MEDIUM
+  "High severity rejection"
+  HIGH
+  "Critical severity rejection"
+  CRITICAL
+}
+
+"""Represents the status of a review rejection."""
+enum ReviewRejectionStatus {
+  ACTIVE
+  APPEALED
+  OVERRULED
+  EXPIRED
+}
+
+"""
+Represents a rejection of a review, including details about the rejection reason and status.
+"""
+type ReviewRejection {
+  id: ID!
+  reviewId: ID!
+  parentRejectionId: ID
+  reviewerId: ID!
+  reviewerEmail: String
+  reviewerType: ReviewerType!
+  reasonCode: ReviewRejectionReasonCode!
+  notes: String
+  severity: ReviewRejectionSeverity!
+  confidenceScore: Float
+  status: ReviewRejectionStatus!
+  appealDeadline: String
+  expiresAt: String
+  notifiedAt: String
+  createdAt: String!
+  updatedAt: String!
+}
+
+"""Represents a review written by a user or critic for a specific work."""
+type Review {
+  id: ID!
+  user: User
+  userId: ID!
+  workId: ID!
+  workType: WorkType!
+  work: Work
+  reviewerType: ReviewerType!
+  title: String!
+  excerpt: String
+  content: String!
+  rating: Int!
+  upvotes: Int!
+  downvotes: Int!
+  status: ReviewStatus!
+  sentiment: ReviewSentiment
+  externalUrl: String
+  originalPublishedAt: String
+  rejections: [ReviewRejection!]
+  publishedAt: String
+  createdAt: String!
+  updatedAt: String!
+}
+
+type ReviewConnection {
+  items: [Review!]!
+  pageInfo: PageInfo!
+}
+
+input GetReviewsInput {
+  "Pagination parameters"
+  pagination: PaginationInput! = {page: 1, limit: 20}
+  "Sorting parameters"
+  sort: SortInput = {field: "createdAt", order: DESC}
+  "Type of reviewer to filter by (e.g., USER, CRITIC)"
+  reviewerType: ReviewerType
+  "Comma-separated list of review statuses to filter by"
+  status: String
+  "ID of the work to filter reviews by"
+  workId: ID
+}
+
+input RejectReviewInput {
+  "Optional reason for rejecting the review"
+  comment: String
+  "Rejection reason code"
+  reasonCode: ReviewRejectionReasonCode!
+  "Severity level of the rejection"
+  severity: ReviewRejectionSeverity!
+}
+
+"""Input data for adding a new review."""
+input AddReviewInput {
+  "The unique identifier for the work being reviewed."
+  workId: ID!
+  "The title of the review."
+  title: String!
+  "A brief excerpt or summary of the review."
+  excerpt: String
+  "The content of the review."
+  content: String!
+  "The rating given to the work, out of 10."
+  rating: Int!
+  "External URL for the review, if applicable."
+  externalUrl: String
+  "The date the review was originally published."
+  originalPublishedAt: String
+}
+
+type IAMRole {
+  id: ID!
+  name: String!
+  description: String
+  scope: String!
+  isActive: Boolean!
+  permissions: [Permission!]
+  createdAt: String!
+  updatedAt: String!
+}
+
+input ListRolesQuery {
+  search: String
+  status: String
+}
+
+input CreateRolesInput {
+  roles: [RoleInput!]!
+}
+
+input RoleInput {
+  name: String!
+  description: String
+  scope: String
+}
+
+input UpdateRoleInput {
+  name: String
+  description: String
+  scope: String
+  isActive: Boolean
+}
+
+input AssignPermissionsToRoleInput {
+  permissionIds: [ID!]!
+}
+
+input SearchInput {
+  collections: [String]
+  term: String!
+}
+
+type SearchResult {
+  collections: [SearchResultCollection!]!
+}
+
+type SearchResultCollection {
+  name: String!
+  displayName: String!
+  hits: [SearchHit]
+  found: Int!
+}
+
+type UserSearchHit {
+  id: String!
+  username: String!
+  email: String!
+  fullname: String!
+}
+
+type PersonSearchHit {
+  id: String!
+  name: String!
+  slug: String!
+  person: Person
+}
+
+type AwardSearchHit {
+  id: String!
+  name: String!
+  slug: String!
+  organization: String!
+  description: String!
+}
+
+type CompanySearchHit {
+  id: String!
+  name: String!
+  slug: String!
+  description: String!
+}
+
+type WorkSearchHit {
+  id: String!
+  posterUrl: String!
+  title: String!
+  type: String!
+  slug: String!
+  synopsis: String!
+  runtime: String!
+  releaseYear: Int!
+  work: Work
+}
+
+type GenreSearchHit {
+  id: String!
+  name: String!
+  slug: String!
+  description: String!
+}
+
+union SearchHit = PersonSearchHit | AwardSearchHit | CompanySearchHit | WorkSearchHit | GenreSearchHit | UserSearchHit
+
+type ServiceAccount {
+  id: ID!
+  name: String!
+  description: String
+  tenantId: String
+  apiKeys(pagination: PaginationInput! = {page: 1, pageSize: 20}, sort: SortInput! = {sortBy: "createdAt", sortOrder: desc}): ApiKeyConnection!
+  roles: [IAMRole!]
+  createdAt: String!
+  updatedAt: String!
+}
+
+type ServiceAccountConnection {
+  items: [ServiceAccount!]!
+  pageInfo: PageInfo!
+}
+
+input CreateServiceAccountInput {
+  name: String!
+  description: String
+  tenantId: String
+  roleIds: [ID!]
+}
+
+input UpdateServiceAccountInput {
+  name: String
+  description: String
+  roleIds: [ID!]
+}
+
+input ListServiceAccountsInput {
+  pagination: PaginationInput! = {page: 1, pageSize: 20}
+  sort: SortInput! = {sortBy: "createdAt", sortOrder: desc}
+  tenantId: String
+  search: String
+}
+
+type IAMTenant {
+  id: String!
+  identifier: String!
+  name: String!
+  displayName: String
+  active: Boolean!
+  isDefault: Boolean!
+  data: JSON
+  jwtConfiguration: IAMTenantJWTConfiguration
+  users(input: ListTenantUsersInput!): IAMUserConnection!
+  createdAt: String!
+  updatedAt: String!
+}
+
+type IAMTenantJWTConfiguration {
+  issuer: String
+  tokenTTL: Int!
+  refreshTokenTTL: Int!
+  signingKeyId: String
+}
+
+input IAMTenantJWTConfigurationInput {
+  issuer: String
+  tokenTTL: Int!
+  refreshTokenTTL: Int!
+  signingKeyId: String
+}
+
+type IAMTenantConnection {
+  items: [IAMTenant!]!
+  pageInfo: PageInfo!
+}
+
+input ListTenantsInput {
+  pagination: PaginationInput! = {page: 1, pageSize: 20}
+  sort: SortInput! = {sortBy: "createdAt", sortOrder: desc}
+  search: String
+}
+
+input ListTenantUsersInput {
+  pagination: PaginationInput! = {page: 1, pageSize: 20}
+  sort: SortInput! = {sortBy: "createdAt", sortOrder: desc}
+  search: String
+}
+
+input CreateTenantInput {
+  identifier: String!
+  name: String!
+  displayName: String
+  data: JSON
+  jwtConfiguration: IAMTenantJWTConfigurationInput
+  isDefault: Boolean! = false
+}
+
+input UpdateTenantInput {
+  jwtSigningKeyId: String
+  jwtTokenTTL: Int
+  refreshTokenTTL: Int
+  displayName: String
+  data: JSON
+}
+
+"""Represents the type of trivia content."""
+enum TriviaType {
+  "Behind-the-scenes production notes"
+  PRODUCTION
+  "Mistakes and continuity errors"
+  GOOFS
+  "Memorable quotes from the work"
+  QUOTES
+  "Hidden references and Easter eggs"
+  EASTER_EGGS
+  "General trivia and interesting facts"
+  GENERAL
+}
+
+"""Represents the status of a trivia item."""
+enum TriviaStatus {
+  "Trivia created but not yet submitted for review"
+  DRAFT
+  "Trivia submitted and pending approval"
+  PENDING_REVIEW
+  "Trivia declined for not meeting guidelines"
+  DECLINED
+  "Trivia approved and published"
+  PUBLISHED
+  "Trivia archived"
+  ARCHIVED
+}
+
+"""Represents the reason code for declining a trivia submission."""
+enum TriviaRejectionReasonCode {
+  "The trivia contains spammy content"
+  SPAM
+  "The trivia contains offensive language or content"
+  OFFENSIVE
+  "The trivia is irrelevant to the work"
+  IRRELEVANT
+  "The trivia contains content that harasses or bullies others"
+  HARASSMENT
+  "The trivia contains hate speech or discriminatory content"
+  HATE_SPEECH
+  "The trivia contains unmarked spoilers"
+  SPOILERS_UNMARKED
+  "The trivia is a duplicate of existing content"
+  DUPLICATE
+  "The trivia contains inaccurate information"
+  INACCURATE
+  "The trivia promotes the author's other works or services"
+  SELF_PROMOTION
+  "The trivia contains copyrighted content"
+  COPYRIGHT
+  "Other reason not listed"
+  OTHER
+}
+
+"""Represents the status of a trivia rejection."""
+enum TriviaRejectionStatus {
+  "Rejection is active"
+  ACTIVE
+  "Rejection has been appealed"
+  APPEALED
+  "Rejection has been overruled on appeal"
+  OVERRULED
+  "Rejection has expired"
+  EXPIRED
+}
+
+"""Represents the severity of a trivia rejection."""
+enum TriviaRejectionSeverity {
+  "Minor issue, warning issued"
+  LOW
+  "Moderate issue, temporary suspension"
+  MEDIUM
+  "Severe issue, long-term suspension"
+  HIGH
+  "Critical issue, permanent ban"
+  CRITICAL
+}
+
+"""Type of moderator performing the action."""
+enum ModeratorType {
+  "Human moderator"
+  USER
+  "AI/automated agent"
+  AGENT
+}
+
+"""Represents a rejection record for a trivia item."""
+type TriviaRejection {
+  id: ID!
+  parentRejectionId: ID
+  triviaId: ID!
+  reviewerId: ID!
+  reviewerEmail: String
+  reviewerType: ModeratorType!
+  reasonCode: TriviaRejectionReasonCode!
+  notes: String
+  status: TriviaRejectionStatus!
+  severity: TriviaRejectionSeverity!
+  isAutoDetected: Boolean!
+  confidenceScore: Float
+  appealDeadline: String
+  expiresAt: String
+  notifiedAt: String
+  createdAt: String!
+  updatedAt: String!
+}
+
+"""Represents a trivia item for a work."""
+type Trivia {
+  id: ID!
+  workId: ID!
+  workType: WorkType!
+  work: Work
+  userId: ID
+  user: User
+  type: TriviaType!
+  content: String!
+  source: String
+  isSpoiler: Boolean!
+  upvotes: Int!
+  downvotes: Int!
+  status: TriviaStatus!
+  rejections: [TriviaRejection!]!
+  publishedAt: String
+  createdAt: String!
+  updatedAt: String!
+}
+
+type TriviaConnection {
+  items: [Trivia!]!
+  pageInfo: PageInfo!
+}
+
+input GetTriviaInput {
+  "Pagination parameters"
+  pagination: PaginationInput! = {page: 1, limit: 20}
+  "Sorting parameters"
+  sort: SortInput = {field: "createdAt", order: DESC}
+  "ID of the work to filter trivia by"
+  workId: ID
+  "ID of the user to filter trivia by"
+  userId: ID
+  "Types of trivia to filter by"
+  type: [TriviaType!]
+  "Statuses to filter by"
+  status: [TriviaStatus!]
+}
+
+input DraftTriviaInput {
+  "The unique identifier for the work this trivia is about"
+  workId: ID!
+  "The type of trivia"
+  type: TriviaType!
+  "The trivia content"
+  content: String!
+  "Optional source or citation URL"
+  source: String
+  "Whether the trivia contains spoilers"
+  hasSpoiler: Boolean = false
+}
+
+input UpdateTriviaInput {
+  "Updated trivia content"
+  content: String
+  "Updated source URL"
+  source: String
+  "Whether the trivia contains spoilers"
+  isSpoiler: Boolean
+}
+
+input DeclineTriviaInput {
+  "Decline reason code"
+  reasonCode: TriviaRejectionReasonCode!
+  "Optional comment explaining the decline"
+  comment: String
+}
+
+input SignupWithEmailInput {
+  username: String!
+  email: String!
+  password: String!
+  firstName: String
+  lastName: String
+}
+
+input VerifyPasswordResetTokenInput {
+  token: String!
+  identifier: String!
+  password: String!
+}
+
+input ChangePasswordInput {
+  """
+  The current password of the user. Required if user has an existing password.
+  Can be omitted for OAuth users setting their password for the first time.
+  """
+  currentPassword: String
+  "The new password for the user (minimum 8 characters)."
+  newPassword: String!
+}
+
+input MyReviewsInput {
+  pagination: PaginationInput! = {page: 1, pageSize: 20}
+  sort: SortInput! = {sortBy: "createdAt", sortOrder: desc}
+  status: String = "DRAFT,PENDING_REVIEW,PUBLISHED,DECLINED"
+}
+
+input MyRatingsInput {
+  pagination: PaginationInput! = {page: 1, pageSize: 20}
+  sort: SortInput! = {sortBy: "createdAt", sortOrder: desc}
+  isPublic: Boolean
+}
+
+input GetUserReviewsInput {
+  pagination: PaginationInput! = {page: 1, pageSize: 20}
+  sort: SortInput! = {sortBy: "createdAt", sortOrder: desc}
+}
+
+input MyWatchListInput {
+  pagination: PaginationInput! = {page: 1, pageSize: 20}
+  sort: SortInput! = {sortBy: "createdAt", sortOrder: desc}
+  workType: WorkType
+}
+
+input VerifyEmailInput {
+  "The identifier (username or email) of the user."
+  identifier: String!
+  "The verification token sent to the user's email."
+  token: String!
+}
+
+input GetIAMUsersInput {
+  pagination: PaginationInput! = {page: 1, pageSize: 20}
+  sort: SortInput! = {sortBy: "createdAt", sortOrder: desc}
+  search: String
+}
+
+input CreateUserInput {
+  username: String!
+  email: String!
+  password: String!
+  firstName: String
+  lastName: String
+  profilePictureUrl: String
+  emailVerified: Boolean
+  roles: [String!]
+  tenantIdentifier: String
+}
+
+input UpdateCurrentUserInput {
+  username: String
+  firstName: String
+  lastName: String
+  profilePictureUrl: String
+  profilePictureId: String
+}
+
+input UpdateIAMUserInput {
+  username: String
+  firstName: String
+  lastName: String
+  profilePictureUrl: String
+  profilePictureId: String
+  emailVerified: Boolean
+  isLocked: Boolean
+  roles: [String!]
+}
+
+"""Input for updating individual notification type preferences."""
+input NotificationChannelPreferencesInput {
+  "The unique key identifying the notification type."
+  notificationTypeKey: String!
+  "Enable or disable in-app notifications for this type."
+  in_app: Boolean
+  "Enable or disable email notifications for this type."
+  email: Boolean
+  "Enable or disable SMS notifications for this type."
+  sms: Boolean
+  "Enable or disable push notifications for this type."
+  push: Boolean
+}
+
+"""Input for updating user notification preferences."""
+input UpdateUserNotificationPreferencesInput {
+  "The preferences for individual notification types."
+  preferences: [NotificationChannelPreferencesInput!]
+  "Enable or disable email notifications globally."
+  enableEmailNotifications: Boolean
+  "Enable or disable SMS notifications globally."
+  enableSMSNotifications: Boolean
+  "Enable or disable in-app notifications globally."
+  enableInAppNotifications: Boolean
+  "Enable or disable push notifications globally."
+  enablePushNotifications: Boolean
+  "Start time of quiet hours (HH:mm:ss format). Set to null to clear."
+  quietHoursStart: String
+  "End time of quiet hours (HH:mm:ss format). Set to null to clear."
+  quietHoursEnd: String
+  "User timezone in IANA format. Set to null to clear."
+  timezone: String
+}
+
+input GetUserInAppNotificationsInput {
+  pagination: PaginationInput! = {page: 1, pageSize: 20}
+  sort: SortInput! = {sortBy: "createdAt", sortOrder: desc}
+  isRead: Boolean
+  isArchived: Boolean
+}
+
+"""Input for a single email subscription preference update."""
+input EmailSubscriptionPreferenceInput {
+  "The key identifying the email subscription type (e.g., weekly_digest, product_updates)."
+  key: String!
+  "Whether the user should be subscribed to this email type."
+  subscribed: Boolean!
+}
+
+"""Input for updating email subscription preferences."""
+input UpdateEmailSubscriptionPreferencesInput {
+  "List of email subscription preferences to update."
+  preferences: [EmailSubscriptionPreferenceInput!]!
+}
+
+type User {
+  id: ID!
+  displayUsername: String
+  username: String!
+  email: String!
+  "URL of the user's profile picture."
+  profilePictureUrl: String
+  "ID of the user's profile picture media item."
+  profilePictureId: String
+  firstName: String
+  lastName: String
+  emailVerified: Boolean!
+  "Indicates if the user account is locked for any reason."
+  isLocked: Boolean!
+  "Indicates if the user is a critic, allowing them to write critic reviews."
+  isCritic: Boolean
+  "Total number of published reviews by the user."
+  reviewCount: Int
+  "Total number of ratings submitted by the user."
+  ratingCount: Int
+  "Total number of works in the user's watchlist."
+  watchListCount: Int
+  "User notification preferences for email, SMS, push, and in-app notifications."
+  notificationPreferences: UserNotificationPreferences
+  "Notification counts (resolved by field resolver)"
+  inAppNotificationCounts: InAppNotificationCounts
+  "User's in-app notifications (resolved by field resolver)"
+  inAppNotifications(input: GetUserInAppNotificationsInput): InAppNotificationConnection
+  "User's email subscription preferences for marketing emails."
+  emailSubscriptionPreferences: EmailSubscriptionPreferences
+  "Summary of user credentials including password status and linked OAuth accounts."
+  credentialSummary: CredentialSummary
+  "When the user account was created."
+  createdAt: String!
+  "When the user account was last updated."
+  updatedAt: String!
+}
+
+"""
+Configuration for notification channels for a specific notification type.
+"""
+type NotificationChannelPreferences {
+  description: String!
+  in_app: Boolean!
+  email: Boolean!
+  sms: Boolean!
+  push: Boolean
+}
+
+"""Configuration for a specific notification type."""
+type NotificationPreferences {
+  notificationTypeKey: String!
+  preferences: NotificationChannelPreferences!
+}
+
+"""User notification preferences configuration."""
+type UserNotificationPreferences {
+  "The unique identifier of the user."
+  userId: ID!
+  """
+  A JSON object storing user preferences for different notification types and channels.
+  Keys are notification types (e.g., REVIEW_SUBMITTED, COMMUNITY_COMMENT_MENTION).
+  Values contain channel preferences (email, sms, in_app, push) and description.
+  """
+  preferences: [NotificationPreferences!]!
+  "Enable or disable email notifications globally."
+  enableEmailNotifications: Boolean!
+  "Enable or disable SMS notifications globally."
+  enableSMSNotifications: Boolean!
+  "Enable or disable in-app notifications globally."
+  enableInAppNotifications: Boolean!
+  "Enable or disable push notifications globally."
+  enablePushNotifications: Boolean!
+  "Start time of quiet hours (HH:mm:ss format)."
+  quietHoursStart: String
+  "End time of quiet hours (HH:mm:ss format)."
+  quietHoursEnd: String
+  "User timezone in IANA format (e.g., America/New_York)."
+  timezone: String
+  createdAt: String!
+  updatedAt: String!
+}
+
+"""A single email subscription preference item."""
+type EmailSubscriptionPreference {
+  "The key identifying the email subscription type (e.g., weekly_digest, product_updates)."
+  key: String!
+  "Human-readable description of the subscription."
+  description: String!
+  "Whether the user is subscribed to this email type."
+  subscribed: Boolean!
+}
+
+"""
+User's email subscription preferences for marketing and transactional emails.
+"""
+type EmailSubscriptionPreferences {
+  "List of email subscription preferences."
+  preferences: [EmailSubscriptionPreference!]!
+}
+
+type IAMUser {
+  id: ID!
+  username: String!
+  displayUsername: String
+  email: String!
+  firstName: String
+  lastName: String
+  "URL of the user's profile picture."
+  profilePictureUrl: String
+  "ID of the user's profile picture media item."
+  profilePictureId: String
+  emailVerified: Boolean!
+  isVerified: Boolean!
+  isLocked: Boolean!
+  roles: [IAMRole!]
+  createdAt: String!
+  updatedAt: String!
+}
+
+type UserListItem {
+  "An item in the user's watchlist or other lists."
+  id: ID!
+  "Unique identifier for the work"
+  workId: ID!
+  "Type of the work (e.g., MOVIE, SERIES)"
+  workType: WorkType!
+  "The associated work details"
+  work: Work
+  createdAt: String!
+  updatedAt: String!
+}
+
+type UserMetrics {
+  "Total number of reviews submitted by the user."
+  reviewsCount: Int!
+  "Total number of ratings submitted by the user."
+  ratingsCount: Int!
+  "Total number of works in the user's watchlist."
+  watchListCount: Int!
+}
+
+"""Represents a linked OAuth account for the user."""
+type LinkedOAuthAccount {
+  "Unique identifier for the credential."
+  id: ID!
+  "OAuth provider identifier (e.g., 'google', 'apple')."
+  provider: String!
+  "Display-friendly provider name (e.g., 'Google', 'Apple')."
+  providerDisplayName: String!
+  "Email address from the OAuth provider."
+  providerEmail: String!
+  "When the OAuth account was linked (ISO date string)."
+  linkedAt: String!
+  "When the OAuth credential was last used for login."
+  lastUsedAt: String
+}
+
+"""
+Summary of user credentials including password status and linked OAuth accounts.
+"""
+type CredentialSummary {
+  "Whether the user has a password credential set."
+  hasPassword: Boolean!
+  "List of linked OAuth accounts."
+  linkedAccounts: [LinkedOAuthAccount!]!
+}
+
+type IAMUserConnection {
+  items: [IAMUser!]!
+  pageInfo: PageInfo!
+}
+
+type UsersConnection {
+  items: [User!]!
+  pageInfo: PageInfo!
+}
+
+type UserListItemConnection {
+  items: [UserListItem!]!
+  pageInfo: PageInfo!
+}
+
+enum WorkAvailabilityType {
+  SUBSCRIPTION
+  RENTAL
+  PURCHASE
+  FREE
+}
+
+"""Represents the availability of a work on a specific platform."""
+type WorkAvailability {
+  id: String!
+  "The unique identifier of the work."
+  workId: String!
+  "The unique identifier of the platform."
+  platformId: String!
+  "The platform where the work is available."
+  platform: Platform
+  "The type of availability."
+  availabilityType: WorkAvailabilityType!
+  "The URL to access the work on the platform."
+  url: String!
+  "The region where the work is available."
+  region: String
+  "The start date of availability."
+  availableFrom: String
+  "The end date of availability."
+  availableTill: String
+  "The price for subscription access."
+  subscriptionPrice: Float
+  "The price for rental access."
+  rentalPrice: Float
+  "The price for purchase access."
+  purchasePrice: Float
+  "The currency for the prices."
+  currency: String
+  "The source of the availability information."
+  datasource: String!
+  "The timestamp when the availability was created."
+  createdAt: String!
+  "The timestamp when the availability was last updated."
+  updatedAt: String!
+}
+
+input AddWorkAvailabilityInput {
+  "The unique identifier of the platform."
+  platformId: String!
+  "The type of availability."
+  availabilityType: WorkAvailabilityType!
+  "The region where the work is available."
+  region: String
+  "The URL to access the work on the platform."
+  url: String!
+  "The start date of availability."
+  availableFrom: String
+  "The end date of availability."
+  availableTill: String
+  "The price for subscription access."
+  subscriptionPrice: Float
+  "The price for rental access."
+  rentalPrice: Float
+  "The price for purchase access."
+  purchasePrice: Float
+  "The currency for the prices."
+  currency: String
+}
+
+input UpdateWorkAvailabilityInput {
+  "The type of availability."
+  availabilityType: WorkAvailabilityType
+  "The region where the work is available."
+  region: String
+  "The URL to access the work on the platform."
+  url: String
+  "The start date of availability."
+  availableFrom: String
+  "The end date of availability."
+  availableTill: String
+  "The price for subscription access."
+  subscriptionPrice: Float
+  "The price for rental access."
+  rentalPrice: Float
+  "The price for purchase access."
+  purchasePrice: Float
+  "The currency for the prices."
+  currency: String
+}
+
+type WorkCredit {
+  id: ID!
+  personId: ID!
+  person: Person
+  role: String!
+  department: String
+  characterName: String
+  order: Int
+  notes: String
+  isLead: Boolean!
+  isFeatured: Boolean!
+  createdAt: String!
+  updatedAt: String!
+}
+
+type WorkRanking {
+  "The unique identifier of the work."
+  identifier: String!
+  "The current ranking of the work."
+  ranking: Int!
+  "The change in ranking compared to the previous day. Positive values indicate an improvement in rank, negative values indicate a drop."
+  delta: Int
+}
+
+"""Represents a work (e.g., movie, series, documentary) in the system."""
+type Work {
+  id: ID!
+  "The unique id for the parent work, if applicable. For episodes, this will reference the parent series or show."
+  parentId: ID
+  "The parent work, if applicable. For episodes, this will reference the parent series or show."
+  parent: Work
+  "Id of the media asset used as the poster image for the work."
+  posterId: ID
+  "The media asset used as the poster image for the work."
+  poster: Media
+  "Id of the media asset used as the backdrop image for the work."
+  backdropId: ID
+  "The media asset used as the backdrop image for the work."
+  backdrop: Media
+  "Id of the media asset used as the trailer for the work."
+  trailerId: ID
+  "The media asset used as the trailer for the work."
+  trailer: Media
+  "Id of the media asset used as the main video for the work."
+  videoId: ID
+  "The media asset used as the main video for the work."
+  video: Media
+  "The type of work (e.g., movie, series, documentary, short film)."
+  workType: WorkType!
+  "A unique identifier for the work, typically a URL-friendly version of the title."
+  slug: String!
+  "The title of the work."
+  title: String!
+  "Indicates if the work is available for streaming."
+  isStreamable: Boolean!
+  "Indicates if the work is currently in theatres."
+  isInTheatre: Boolean!
+  "The original title, if different from the main title."
+  originalTitle: String
+  "List of languages the work is available in."
+  languages: [String]
+  "List of languages spoken in the work."
+  spokenLanguages: [String]
+  "For TV shows or episodes, the season number."
+  seasonNumber: Int
+  "For episodes, the episode number."
+  episodeNumber: Int
+  "For series, the total number of seasons."
+  seasonCount: Int
+  "A brief description of the work."
+  summary: String
+  "A detailed synopsis of the work."
+  synopsis: String
+  "The content rating (e.g., PG-13, R)."
+  contentRating: String
+  "The date the work was released in theaters or made available for streaming."
+  releaseDate: String
+  "For TV shows or episodes, the date it first aired."
+  airDate: String
+  "For series, the date it started airing."
+  startDate: String
+  "For series, the date it ended airing (if applicable)."
+  endDate: String
+  "The year the work was released."
+  releaseYear: Int
+  "Duration of the work in minutes."
+  runtime: Int
+  "Weighted average user rating."
+  userRating: Float
+  "Weighted average critic rating."
+  criticRating: Float
+  "User rating submitted by the current user (if authenticated)."
+  currentUserRating: Int
+  "Review submitted by the current user (if authenticated)."
+  currentUserReview: Review
+  "Indicates if the current user has add the work to their watchlist."
+  inWatchlist: Boolean!
+  "Indicates if the current user has marked the work as watched."
+  isWatched: Boolean!
+  "Indicates if the current user has liked the work."
+  isLiked: Boolean!
+  "Indicates if the current user has disliked the work."
+  isDisliked: Boolean!
+  "Production budget in USD."
+  budget: Float
+  "Currency code for the budget (e.g., USD, EUR)."
+  budgetCurrency: String
+  "List of genres associated with the work."
+  genres: [Genre!]
+  "List of themes associated with the work."
+  themes: [Theme!]
+  "Cast members associated with the work."
+  cast: [WorkCredit!]
+  "Crew members associated with the work."
+  crew: [WorkCredit!]
+  "For TV shows or series, the episodes associated with the work."
+  episodes(input: ListEpisodesInput!): WorksConnection
+  "Indicates if the work is featured for special promotion."
+  featured: Boolean!
+  "Total number of user reviews for the work."
+  userReviewCount: Int
+  "Reviews submitted by users for the work"
+  reviews(input: ListWorkReviewInput): ReviewConnection!
+  "Total number of critic reviews for the work."
+  criticReviewCount: Int
+  "Reviews submitted by critics for the work."
+  criticReviews(input: ListWorkReviewInput): ReviewConnection!
+  "Total number of ratings for the work."
+  ratingCount: Int
+  "Total number of critic rating for the work"
+  criticRatingCount: Int
+  "Articles related to this work."
+  relatedArticles(input: GetWorkRelatedArticlesInput): [Article!]
+  "Media collection items (photos, videos) associated with this work."
+  media(input: GetWorkMediaInput!): MediaCollectionItemConnection!
+  "Fetch works similar to this one"
+  similar(limit: Int = 10): [Work!]!
+  "Retrieves credits for person associated with this work."
+  credits(personIdentifier: String!): [WorkCredit!]!
+  "Availability details of the work on various platforms."
+  availability(overrideRegions: Boolean = false): [WorkAvailability!]!
+  "Ranking data for the work for the past day."
+  ranking: WorkRanking
+  "Trivia items associated with the work."
+  trivia(input: ListWorkTriviaInput): TriviaConnection!
+  "Total number of trivia items for the work."
+  triviaCount: Int
+  "External critic reviews for this work (fetched from third-party sources)."
+  externalCriticReviews(input: ListExternalCriticReviewsInput): ExternalCriticReviewConnection!
+  "Timestamp of when the work was created."
+  createdAt: String!
+  "Timestamp of when the work was last updated."
+  updatedAt: String!
+  "Timestamp of when the work was deleted (if archived)."
+  deletedAt: String
+}
+
+type Genre {
+  id: ID!
+  parentId: ID
+  name: String!
+  slug: String!
+  description: String
+  isSubGenre: Boolean!
+  createdAt: String!
+  updatedAt: String!
+}
+
+type Theme {
+  id: ID!
+  name: String!
+  slug: String!
+  description: String
+  createdAt: String!
+  updatedAt: String!
+}
+
+type Rating {
+  id: ID!
+  userId: ID
+  work: Work
+  workId: ID!
+  isPublic: Boolean!
+  value: Int!
+  createdAt: String!
+  updatedAt: String!
+}
+
+type WorksConnection {
+  items: [Work!]!
+  pageInfo: PageInfo!
+}
+
+type GenresConnection {
+  items: [Genre!]!
+  pageInfo: PageInfo!
+}
+
+type ThemesConnection {
+  items: [Theme!]!
+  pageInfo: PageInfo!
+}
+
+type RatingConnection {
+  items: [Rating!]!
+  pageInfo: PageInfo!
+}
+
+input GetGenresInput {
+  pagination: PaginationInput! = {page: 1, pageSize: 20}
+  sort: SortInput! = {sortBy: "name", sortOrder: asc}
+  search: String
+  parentId: ID
+}
+
+input GetThemesInput {
+  pagination: PaginationInput! = {page: 1, pageSize: 20}
+  sort: SortInput! = {sortBy: "name", sortOrder: asc}
+  search: String
+}
+
+input GetMoviesInput {
+  pagination: PaginationInput! = {page: 1, pageSize: 20}
+  sort: SortInput! = {sortBy: "title", sortOrder: desc}
+  workType: [WorkType!] = [MOVIE]
+  contentRating: [String!] = []
+  userRatingMin: Int
+  userRatingMax: Int
+  criticRatingMin: Int
+  criticRatingMax: Int
+  releaseYear: Int
+  releaseYearMax: Int
+  languages: [String!] = []
+  genres: [String!] = []
+}
+
+input GetShowsInput {
+  pagination: PaginationInput! = {page: 1, pageSize: 20}
+  sort: SortInput! = {sortBy: "title", sortOrder: desc}
+  workType: [WorkType!] = [TV_SHOW, WEB_SERIES]
+  contentRating: [String!] = []
+  userRatingMin: Int
+  userRatingMax: Int
+  criticRatingMin: Int
+  criticRatingMax: Int
+  releaseYear: Int
+  languages: [String!]
+  genres: [String!]
+}
+
+input GetWorksInput {
+  pagination: PaginationInput! = {page: 1, pageSize: 20}
+  sort: SortInput! = {sortBy: "title", sortOrder: desc}
+  archived: Boolean = false
+  workType: [WorkType!]
+  contentRating: [String!] = []
+  userRatingMin: Int
+  userRatingMax: Int
+  criticRatingMin: Int
+  criticRatingMax: Int
+  releaseYear: Int
+  releaseYearMax: Int
+  languages: [String!] = []
+  genres: [String!] = []
+}
+
+input GetWorkReviewsInput {
+  identifier: String!
+  pagination: PaginationInput! = {page: 1, pageSize: 20}
+  sort: SortInput! = {sortBy: "publishedAt", sortOrder: desc}
+  "Filter work reviews by the reviewer type"
+  reviewerType: ReviewerType
+}
+
+input ListWorkReviewInput {
+  "Pagination settings for listing work reviews."
+  pagination: PaginationInput! = {page: 1, pageSize: 20}
+  "Sorting settings for listing work reviews."
+  sort: SortInput! = {sortBy: "publishedAt", sortOrder: desc}
+  "Filter work reviews by the reviewer type"
+  reviewerType: ReviewerType
+}
+
+input GetFeaturedWorksInput {
+  limit: Int! = 10
+  workType: WorkType
+  sortBy: String! = "userRating"
+  sortOrder: SortOrder! = desc
+}
+
+input GetTrendingWorksInput {
+  "Type of works to get trending data for"
+  workType: WorkType!
+  "Maximum number of results to return (default: 10)"
+  limit: Int! = 10
+}
+
+input AddWorkInput {
+  workType: WorkType!
+  title: String!
+  parentId: ID
+  originalTitle: String
+  slug: String
+  genres: [String!]
+  themes: [String!]
+  languages: [String!]
+  spokenLanguages: [String!]
+  contentRating: String
+  synopsis: String
+  summary: String
+  releaseDate: String
+  airDate: String
+  startDate: String
+  endDate: String
+  runtime: Int
+  posterId: ID
+  backdropId: ID
+  trailerId: ID
+  isStreamable: Boolean = false
+  isInTheatre: Boolean = false
+  budget: Float
+  budgetCurrency: String
+  featured: Boolean = false
+  seasonCount: Int
+  seasonNumber: Int
+  episodeNumber: Int
+}
+
+input UpdateWorkInput {
+  posterId: ID
+  backdropId: ID
+  trailerId: ID
+  videoId: ID
+  workType: WorkType
+  slug: String
+  title: String
+  isStreamable: Boolean
+  isInTheatre: Boolean
+  originalTitle: String
+  languages: [String!]
+  spokenLanguages: [String!]
+  contentRating: String
+  synopsis: String
+  summary: String
+  releaseDate: String
+  airDate: String
+  startDate: String
+  endDate: String
+  runtime: Int
+  featured: Boolean
+  budget: Float
+  budgetCurrency: String
+  genres: [String!]
+  themes: [String!]
+}
+
+input AddWorkCastMemberInput {
+  personId: ID!
+  role: String!
+  characterName: String
+  order: Int
+  notes: String
+  isLead: Boolean = false
+  isFeatured: Boolean = false
+}
+
+input AddWorkCrewMemberInput {
+  personId: ID!
+  role: String!
+  department: String!
+  order: Int
+  notes: String
+  isLead: Boolean = false
+  isFeatured: Boolean = false
+}
+
+input UpdateWorkCreditInput {
+  role: String
+  department: String
+  order: Int
+  characterName: String
+  isLead: Boolean
+  isFeatured: Boolean
+}
+
+input ImportWorkTargetInput {
+  type: WorkType!
+  title: String!
+  year: String
+}
+
+input ImportWorksInput {
+  targets: [ImportWorkTargetInput!]!
+  skipVideos: Boolean = false
+  skipImages: Boolean = false
+  skipCredits: Boolean = false
+  maxRetries: Int = 3
+}
+
+input ListEpisodesInput {
+  pagination: PaginationInput! = {page: 1, pageSize: 20}
+  sort: SortInput! = {sortBy: "episodeNumber", sortOrder: asc}
+  seasonNumber: Int
+  episodeNumber: Int
+}
+
+input AddEpisodeInput {
+  title: String!
+  seasonNumber: Int!
+  episodeNumber: Int!
+  srcVideoId: ID!
+  posterId: ID
+  trailerId: ID
+  originalTitle: String
+  slug: String
+  summary: String
+  synopsis: String
+  contentRating: String
+  spokenLanguages: [String!]
+  languages: [String!]
+  runtime: Int
+  releaseDate: String
+  airDate: String
+  userRating: Float
+  criticRating: Float
+}
+
+input GetWorkRelatedArticlesInput {
+  "Maximum number of articles to retrieve (default: 5, max: 20)"
+  limit: Int = 5
+  "Field to sort the articles by (default: publishedAt)"
+  sortBy: String = "publishedAt"
+  "Sort order (default: desc)"
+  sortOrder: SortOrder = desc
+}
+
+input GetWorkMediaInput {
+  "The type of media collection to retrieve (PHOTOS, VIDEOS)"
+  collectionType: MediaCollectionType!
+  "Comma-separated list of media categories to filter by"
+  categories: String
+  "Pagination settings for listing media"
+  pagination: PaginationInput! = {page: 1, pageSize: 20}
+  "Sorting settings for listing media"
+  sort: SortInput! = {sortBy: "order", sortOrder: asc}
+}
+
+input ListWorkTriviaInput {
+  "Pagination settings for listing trivia."
+  pagination: PaginationInput! = {page: 1, pageSize: 20}
+  "Sorting settings for listing trivia."
+  sort: SortInput! = {sortBy: "createdAt", sortOrder: desc}
+  "Filter by trivia type"
+  type: [TriviaType!]
+  "Filter by trivia status"
+  status: [TriviaStatus!]
+}
+
+input AddWorkMediaInput {
+  "The type of media collection to add items to (PHOTOS, VIDEOS)"
+  collectionType: MediaCollectionType!
+  "IDs of the media items to add to the work's media collection"
+  items: [ID!]!
+}
+
+schema {
+  query: Query
+  mutation: Mutation
+}

@@ -47,6 +47,12 @@ func WithCatalogueBaseURL(url string) Option {
 	}
 }
 
+func WithGraphQLEndpoint(endpoint string) Option {
+	return func(c *Config) {
+		c.GraphQLEndpoint = endpoint
+	}
+}
+
 // DefaultConfig returns a Config struct populated with default values.
 func DefaultConfig(iamBaseUrl, catalogueBaseUrl string) *Config {
 	return &Config{

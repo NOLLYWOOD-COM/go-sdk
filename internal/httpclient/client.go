@@ -308,3 +308,23 @@ func (c *client) refreshToken(ctx context.Context) error {
 
 	return nil
 }
+
+// GetAccessToken ensures authentication and returns the current access token.
+// This method implements the AuthProvider interface for use by GraphQL clients.
+func (c *client) GetAccessToken(ctx context.Context) (string, error) {
+	if err := c.authenticate(ctx); err != nil {
+		return "", err
+	}
+
+	c.authMutex.RLock()
+	token := c.auth.AccessToken
+	c.authMutex.RUnlock()
+
+	return token, nil
+}
+
+// GetUserAgent returns the configured user agent string.
+// This method implements the AuthProvider interface.
+func (c *client) GetUserAgent() string {
+	return c.config.UserAgent
+}

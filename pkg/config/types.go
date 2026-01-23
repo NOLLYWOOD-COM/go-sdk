@@ -9,6 +9,7 @@ type Option func(*Config)
 type Config struct {
 	IAMBaseURL       string        // Base URL for the IAM service
 	CatalogueBaseURL string        // Base URL for the Catalogue service
+	GraphQLEndpoint  string        // GraphQL API endpoint
 	ApiKey           string        // API key for authentication
 	Timeout          time.Duration // Request timeout duration
 	RetryDelay       time.Duration // Delay between retries
