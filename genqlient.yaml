@@ -1,0 +1,36 @@
+# genqlient configuration for Nollywood Go SDK
+# Documentation: https://github.com/Khan/genqlient/blob/main/docs/genqlient.yaml
+
+# Path to GraphQL schema file(s) - SDL format
+schema:
+  - pkg/graphql/schema/schema.graphql
+
+# Path to GraphQL operation files (queries/mutations)
+operations:
+  - pkg/graphql/operations/*.graphql
+
+# Output path for generated code
+generated: pkg/graphql/generated.go
+
+# Package name for generated code
+package: graphql
+
+# Use pointer types for optional fields
+optional: pointer
+
+# Include context parameter in generated functions
+context_type: context.Context
+
+# Type bindings for custom scalar types
+bindings:
+  # Map GraphQL DateTime to time.Time
+  DateTime:
+    type: time.Time
+
+  # Map GraphQL ID to string
+  ID:
+    type: string
+
+  # Map custom Date scalar if present
+  Date:
+    type: time.Time
